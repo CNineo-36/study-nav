@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>高中学习资源导航站 · B站六科精选</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bili-pink: #FB7299;
+    --bili-blue: #23ADE5;
+    --gold: #F5A623;
+    --ink: #18191C;
+    --ink-2: #61666D;
+    --ink-3: #9499A0;
+    --bg: #F6F7F8;
+    --card: #FFFFFF;
+    --line: #E3E5E7;
+  }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "HarmonyOS Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  .topbar {
+    background: linear-gradient(135deg, var(--bili-pink) 0%, var(--bili-blue) 100%);
+    padding: 40px 20px 84px;
+    text-align: center;
+    color: #fff;
+  }
+  .topbar h1 { font-size: 30px; letter-spacing: 2px; }
+  .topbar h1 .logo-dot {
+    display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+    background: #fff; margin-right: 10px; vertical-align: middle;
+    box-shadow: 0 0 0 4px rgba(255,255,255,.3);
+  }
+  .topbar p { margin-top: 10px; font-size: 15px; opacity: .92; }
+  .search-wrap {
+    max-width: 960px; margin: -46px auto 0; padding: 0 20px; position: relative; z-index: 5;
+  }
+  .search-box {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card); border-radius: 14px; padding: 14px 18px;
+    box-shadow: 0 8px 24px rgba(24,25,28,.12);
+  }
+  .search-box svg { flex: none; }
+  .search-box input {
+    flex: 1; border: none; outline: none; font-size: 16px; color: var(--ink);
+    background: transparent; min-width: 0;
+  }
+  .search-box input::placeholder { color: var(--ink-3); }
+  .search-box .clear-btn {
+    flex: none; border: none; background: var(--line); color: var(--ink-2);
+    width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+    font-size: 13px; line-height: 1; display: none;
+  }
+  .search-box .clear-btn.show { display: block; }
+  .container { max-width: 960px; margin: 0 auto; padding: 26px 20px 60px; }
+  .section-title {
+    font-size: 15px; color: var(--ink-2); font-weight: 600; margin: 6px 0 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::before {
+    content: ""; width: 4px; height: 16px; border-radius: 2px;
+    background: var(--bili-pink);
+  }
+  .audit-panel {
+    background: var(--card); border-radius: 14px; padding: 18px 20px; margin-bottom: 22px;
+    box-shadow: 0 2px 8px rgba(24,25,28,.05);
+  }
+  .audit-panel .audit-head {
+    display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; margin-bottom: 10px;
+  }
+  .audit-panel .audit-head .star { color: var(--gold); }
+  .audit-criteria { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .audit-criteria span {
+    font-size: 13px; color: var(--ink-2); background: var(--bg);
+    padding: 5px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .audit-criteria span::before { content: "✓"; color: var(--bili-pink); font-weight: 700; }
+  .audit-note { font-size: 13px; color: var(--ink-3); line-height: 1.6; }
+  .subjects { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-bottom: 14px; }
+  .subject-card {
+    background: var(--card); border: 2px solid transparent; border-radius: 12px;
+    padding: 14px 6px; text-align: center; cursor: pointer;
+    transition: all .18s ease; box-shadow: 0 2px 8px rgba(24,25,28,.05);
+  }
+  .subject-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(24,25,28,.1); }
+  .subject-card.active { border-color: var(--bili-pink); background: #FFF1F5; }
+  .subject-card .emoji { font-size: 26px; line-height: 1; }
+  .subject-card .name { margin-top: 8px; font-size: 14px; font-weight: 600; }
+  .subject-card .count { margin-top: 4px; font-size: 12px; color: var(--ink-3); }
+  .subject-card.active .count { color: var(--bili-pink); font-weight: 600; }
+  .dur-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .dur-chip {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink-2);
+    border-radius: 20px; padding: 6px 14px; font-size: 13px; cursor: pointer;
+    transition: all .15s ease;
+  }
+  .dur-chip.active { background: var(--bili-blue); border-color: var(--bili-blue); color: #fff; font-weight: 600; }
+  .result-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; font-size: 14px; color: var(--ink-2);
+  }
+  .result-bar .reset-link {
+    color: var(--bili-blue); cursor: pointer; background: none; border: none;
+    font-size: 14px; display: none;
+  }
+  .result-bar .reset-link.show { display: inline; }
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .res-card {
+    background: var(--card); border-radius: 14px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px;
+    box-shadow: 0 2px 8px rgba(24,25,28,.05); transition: all .18s ease;
+  }
+  .res-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(24,25,28,.12); }
+  .res-card.collection {
+    background: linear-gradient(135deg, #FFF7E6 0%, #FFEFD9 55%, #FFF1F5 100%);
+    border: 2px solid var(--gold);
+  }
+  .res-card.collection:hover { box-shadow: 0 8px 22px rgba(245,166,35,.28); }
+  .res-card.collection .badge { background: #FFE9BF; }
+  .collection-flag {
+    font-size: 12px; color: #fff; background: linear-gradient(90deg, var(--gold), #FF8A3C);
+    border-radius: 6px; padding: 3px 10px; font-weight: 700; white-space: nowrap;
+  }
+  .res-card .head { display: flex; align-items: flex-start; gap: 12px; }
+  .res-card .badge {
+    flex: none; width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+    background: #FFF1F5;
+  }
+  .res-card h3 { font-size: 15.5px; line-height: 1.45; }
+  .res-card .up { font-size: 13px; color: var(--bili-blue); margin-top: 3px; }
+  .res-card .pass-tag {
+    flex: none; font-size: 12px; color: var(--gold); border: 1px solid var(--gold);
+    border-radius: 6px; padding: 2px 8px; font-weight: 600; margin-top: 2px; white-space: nowrap;
+  }
+  .res-card .meta-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .res-card .rtype {
+    font-size: 12px; color: var(--bili-blue);
+    background: #EAF6FD; border-radius: 6px; padding: 3px 10px; font-weight: 600;
+  }
+  .res-card .dur-tag {
+    font-size: 12px; color: #7A6B45; background: #FFF7E6; border: 1px solid #F5E4C0;
+    border-radius: 6px; padding: 3px 10px; font-weight: 600;
+  }
+  .res-card .intro { font-size: 13.5px; color: var(--ink-2); line-height: 1.7; }
+  .audit-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; color: var(--gold); background: none; border: none;
+    cursor: pointer; font-weight: 600; padding: 2px 0; align-self: flex-start;
+  }
+  .audit-toggle .arrow { transition: transform .18s ease; font-size: 10px; }
+  .audit-toggle.open .arrow { transform: rotate(90deg); }
+  .audit-box {
+    background: #FFFDF5; border: 1px solid #F5E4C0; border-radius: 10px; padding: 10px 12px;
+    display: none;
+  }
+  .audit-box.open { display: block; }
+  .audit-box .audit-text { font-size: 12.5px; color: #7A6B45; line-height: 1.6; }
+  .res-card .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .res-card .tag {
+    font-size: 12px; color: var(--ink-2); background: var(--bg);
+    border-radius: 6px; padding: 3px 8px;
+  }
+  .res-card .foot { margin-top: auto; display: flex; justify-content: flex-end; }
+  .go-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--bili-pink); color: #fff; border: none; border-radius: 8px;
+    padding: 8px 18px; font-size: 14px; font-weight: 600; cursor: pointer;
+    text-decoration: none; transition: background .18s ease;
+  }
+  .go-btn:hover { background: #E4517E; }
+  .empty {
+    text-align: center; padding: 60px 20px; color: var(--ink-3); display: none;
+  }
+  .empty .big { font-size: 46px; margin-bottom: 12px; }
+  .empty .tip { font-size: 14px; }
+  footer {
+    text-align: center; padding: 24px 20px 40px; font-size: 13px; color: var(--ink-3);
+    line-height: 1.7;
+  }
+
+  /* ========== 手机形态 ========== */
+  @media (max-width: 720px) {
+    .topbar { padding: 26px 16px 70px; }
+    .topbar h1 { font-size: 21px; letter-spacing: 1px; }
+    .topbar p { font-size: 13px; margin-top: 8px; }
+    .search-wrap { margin-top: -40px; padding: 0 12px; position: sticky; top: 0;
+      background: var(--bg); padding-top: 8px; padding-bottom: 8px; }
+    .search-box { padding: 12px 14px; border-radius: 12px; }
+    .container { padding: 16px 12px 40px; }
+    .audit-panel { padding: 14px 14px; margin-bottom: 16px; border-radius: 12px; }
+    .audit-panel .audit-head { font-size: 14px; }
+    .audit-criteria span { font-size: 12px; padding: 4px 10px; }
+    .audit-note { font-size: 12px; }
+    .section-title { font-size: 14px; }
+    .subjects {
+      display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px;
+      padding-bottom: 6px; margin: 0 -12px 12px; padding-left: 12px; padding-right: 12px;
+      scrollbar-width: none;
+    }
+    .subjects::-webkit-scrollbar { display: none; }
+    .subject-card {
+      flex: none; min-width: 74px; padding: 10px 8px; border-radius: 10px;
+    }
+    .subject-card .emoji { font-size: 22px; }
+    .subject-card .name { font-size: 13px; margin-top: 6px; }
+    .subject-card .count { font-size: 11px; margin-top: 2px; }
+    .dur-row {
+      flex-wrap: nowrap; overflow-x: auto; margin: 0 -12px 16px; padding: 0 12px 6px;
+      gap: 8px; scrollbar-width: none;
+    }
+    .dur-row::-webkit-scrollbar { display: none; }
+    .dur-chip { flex: none; font-size: 12.5px; padding: 7px 13px; }
+    .cards { grid-template-columns: 1fr; gap: 12px; }
+    .res-card { padding: 16px 14px; gap: 10px; border-radius: 12px; }
+    .res-card:hover { transform: none; }
+    .res-card .badge { width: 40px; height: 40px; font-size: 20px; border-radius: 9px; }
+    .res-card h3 { font-size: 15px; }
+    .res-card .intro { font-size: 13px; }
+    .res-card .foot { justify-content: stretch; }
+    .go-btn { width: 100%; padding: 12px 18px; font-size: 15px; border-radius: 10px; }
+    .empty { padding: 40px 20px; }
+    footer { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <h1><span class="logo-dot"></span>高中学习资源导航站</h1>
+    <p>B站六科单点精讲 · 一节课一个考点 · 语文 数学 英语 物理 化学 地理</p>
+  </header>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9499A0" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path>
+      </svg>
+      <input id="searchInput" type="search" placeholder="搜考点，如：圆锥曲线、虚词、传送带…">
+      <button class="clear-btn" id="clearBtn" title="清空搜索">✕</button>
+    </div>
+  </div>
+
+  <main class="container">
+    <div class="audit-panel">
+      <div class="audit-head"><span class="star">★</span>收录标准 · 每一条都经过审核</div>
+      <div class="audit-criteria">
+        <span>一节课一个考点</span>
+        <span>标注时长、按需挑选</span>
+        <span>真实链接逐条核实</span>
+        <span>免费可直达</span>
+      </div>
+      <div class="audit-note">大部分资源是"单点精讲"：一个视频只讲透一个考点，不用跟完整个合集，适合用碎片时间针对性补弱。全册大合集只保留一数（数学）、黄夫人（物理）、化学超人（化学）三个系统课，供想完整跟学的同学使用。审核结论默认收起，点击卡片内"审核结论"展开查看。</div>
+    </div>
+
+    <div class="section-title">按科目浏览</div>
+    <div class="subjects" id="subjectGrid"></div>
+
+    <div class="section-title">按时长筛选</div>
+    <div class="dur-row" id="durRow"></div>
+
+    <div class="result-bar">
+      <span id="resultText"></span>
+      <button class="reset-link" id="resetBtn">重置筛选</button>
+    </div>
+
+    <div class="cards" id="cardGrid"></div>
+
+    <div class="empty" id="emptyState">
+      <div class="big">🔍</div>
+      <div class="tip">没有找到匹配的资源<br>换个关键词试试，或切换科目和时长筛选</div>
+    </div>
+  </main>
+
+  <footer>资源均来自 B 站公开内容 · 单点精讲为主，三大系统合集为辅 · 收录前逐一审核</footer>
+
+<script>
+// 高中六科学习资源 v4：单点精讲为主，全册合集仅保留一数/黄夫人/化学超人
+window.RESOURCES = [
+{title:"一数 · 高中数学基础与解法大合集",up:"一数",subject:"数学",type:"全册合集 · 系统主线",tags:["数学","全册合集","必修到选必"],dur:0,intro:"一数（2576万粉）的旗舰大合集，按新人教A版从必修一到选必三全覆盖，每个知识点方法加习题双线讲解，2.4亿播放。如果时间只够跟一个数学合集，就是这个。适合作为数学自学主线，也可只挑自己薄弱的章节看。",audit:"审核通过。①紧扣新教材，必修到选必全章节对应，方法加习题双轨；②长期更新、免费直达；③公认的数学自学首选主线。用户指定保留。",url:"https://space.bilibili.com/14229967/lists/1533671"},
+{title:"黄夫人 · 高一高二物理（上篇）",up:"黄夫人",subject:"物理",type:"全册合集 · 系统主线",tags:["物理","全册合集","必修"],dur:0,intro:"黄夫人（HuangFuRen，1263万粉）的新教材物理系统课上篇，132讲从必修一开始细致讲解，受力分析、运动学讲得规范通俗，特别适合物理30-50分、需要从头理清思路的同学。",audit:"审核通过。①紧扣新教材，讲解细致规范；②132讲覆盖高一高二主要章节；③免费直达；④公认适合基础薄弱者入门。用户指定保留。",url:"https://space.bilibili.com/23630128/lists/2045"},
+{title:"黄夫人 · 高一高二物理（下篇）",up:"黄夫人",subject:"物理",type:"全册合集 · 系统主线",tags:["物理","全册合集","选必"],dur:0,intro:"黄夫人系统课下篇，178讲覆盖选择性必修的力学进阶与电磁学等内容，与上篇衔接构成完整高中物理体系，适合跟完上篇继续深入的同学。",audit:"审核通过。①178讲覆盖选必主要内容；②与上篇构成完整体系；③免费直达。用户指定保留。",url:"https://space.bilibili.com/23630128/lists/2181"},
+{title:"化学超人 · 必修一+必修二同步大合集",up:"化学超人",subject:"化学",type:"全册合集 · 系统主线",tags:["化学","全册合集","必修一二"],dur:0,intro:"化学超人（张立翔，西工大本硕，215万粉）的高一化学系统课，48讲按必修一、必修二章节逐节讲解，从物质分类到元素化合物逻辑链完整，零基础友好，适合高一同步学习与逆袭。",audit:"审核通过。①紧扣必修一、二全章节，讲解系统；②48讲覆盖全册；③免费直达。用户指定保留。",url:"https://space.bilibili.com/416601949/lists/687673"},
+{title:"一地er · 高考地理系统课",up:"一地er",subject:"地理",type:"全册合集 · 系统主线",tags:["地理","全册合集","一轮方法"],dur:0,intro:"一地er（377万粉）的高考地理系统课，62讲把地理核心方法与一轮复习结合，覆盖自然地理、人文地理主要考点，讲解清晰、逻辑性强，是地理自学的主力主线；地理只跟一个合集就选它。",audit:"审核通过。①62讲覆盖高考地理主要考点，方法＋复习结合；②主讲人377万粉、口碑稳定；③免费直达。用户指定加入并置顶。",url:"https://space.bilibili.com/1231108399/lists/3632448"},
+{title:"一地er · 高中地理必修一（人教版）",up:"一地er",subject:"地理",type:"全册合集 · 同步主线",tags:["地理","全册合集","必修一"],dur:0,intro:"按人教版必修一逐章精讲自然地理，31讲覆盖宇宙中的地球、大气、水循环等，讲解细致、配图清晰，适合高一同步学习自然地理。",audit:"审核通过。①紧扣人教版必修一全章；②31讲覆盖自然地理主要内容；③免费直达。",url:"https://space.bilibili.com/1231108399/lists/655210"},
+{title:"一地er · 高中地理必修二（人教版）",up:"一地er",subject:"地理",type:"全册合集 · 同步主线",tags:["地理","全册合集","必修二"],dur:0,intro:"按人教版必修二讲解人文地理，14讲覆盖人口、城市、农业、工业等，与必修一衔接构成高一地理完整体系，适合高一同步学习。",audit:"审核通过。①紧扣人教版必修二；②与必修一构成完整高一体系；③免费直达。",url:"https://space.bilibili.com/1231108399/lists/1172699"},
+{title:"一地er · 高中地理选必一（人教版）",up:"一地er",subject:"地理",type:"全册合集 · 同步主线",tags:["地理","全册合集","选必一"],dur:0,intro:"按人教版选择性必修一讲解自然地理进阶内容，30讲覆盖地球运动、自然环境整体性等，适合高二同步学习选必一。",audit:"审核通过。①紧扣人教版选必一；②30讲覆盖主要内容；③免费直达。",url:"https://space.bilibili.com/1231108399/lists/815046"},
+{title:"一地er · 区域地理",up:"一地er",subject:"地理",type:"全册合集 · 区域",tags:["地理","全册合集","区域地理"],dur:0,intro:"区域地理专题合集，讲解主要区域的地理特征与分析方法；区域地理是高考综合题的重要背景，适合补充区域认知、提升综合题能力。",audit:"审核通过。①区域地理是综合题重要基础；②持续更新；③免费直达。",url:"https://space.bilibili.com/1231108399/lists/614211"},
+{title:"一数 · 【洛必达法则】高考使用指南",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:17,intro:"本集主题：【洛必达法则】高考使用指南。约17分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1uz4y1475S"},
+{title:"一数 · 6分钟上手高考中泰勒展开运用【保姆级教程】",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:15,intro:"本集主题：6分钟上手高考中泰勒展开运用【保姆级教程】。约15分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1zG4y1v7Ev"},
+{title:"一数 · 高中数学同构思想，最保姆式的讲解，从基础到压轴！",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:13,intro:"本集主题：高中数学同构思想，最保姆式的讲解，从基础到压轴！。约13分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV18R4y1E79R"},
+{title:"一数 · 学霸喜欢的三角换元法-普通人也能会！【决胜强基系列】",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:23,intro:"本集主题：学霸喜欢的三角换元法-普通人也能会！【决胜强基系列】。约23分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Vf4y1F7v4"},
+{title:"一数 · 盘点高中数学有价值的二级结论！别学没用的！【必修篇】",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:51,intro:"本集主题：盘点高中数学有价值的二级结论！别学没用的！【必修篇】。约51分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1pP4y1k79Q"},
+{title:"一数 · 基本不等式，解题靠运气？来学核心思想！",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:34,intro:"本集主题：基本不等式，解题靠运气？来学核心思想！。约34分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1FR4y1o7J8"},
+{title:"一数 · 立体几何-核心辅助线大全总结！",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:47,intro:"本集主题：立体几何-核心辅助线大全总结！。约47分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1bm4y1y7wt"},
+{title:"一数 · 超好懂的立体几何动点专题！位置关系的判定",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:26,intro:"本集主题：超好懂的立体几何动点专题！位置关系的判定。约26分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1xZ4y1y7b7"},
+{title:"一数 · 慎入，又臭又长的概率大题！手把手教你分析",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:28,intro:"本集主题：慎入，又臭又长的概率大题！手把手教你分析。约28分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1mA4y1X7Bm"},
+{title:"一数 · 【解析几何】究竟有哪些“二级结论”要掌握？「上篇」",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:50,intro:"本集主题：【解析几何】究竟有哪些“二级结论”要掌握？「上篇」。约50分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV12u411H7df"},
+{title:"一数 · 圆锥曲线 动态离心率三大核心策略！",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:14,intro:"本集主题：圆锥曲线 动态离心率三大核心策略！。约14分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Kb4y187Gn"},
+{title:"一数 · 高中数学解题思想【数形结合】|理解本质，灵活运用！",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:39,intro:"本集主题：高中数学解题思想【数形结合】|理解本质，灵活运用！。约39分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV143411w7P1"},
+{title:"一数 · 根据什么分类？17分钟学会数学分类讨论原理！",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:17,intro:"本集主题：根据什么分类？17分钟学会数学分类讨论原理！。约17分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV15a411H7nE"},
+{title:"一数 · 越来越复杂的指对函数，一个视频打开思路！",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:31,intro:"本集主题：越来越复杂的指对函数，一个视频打开思路！。约31分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1zD4y1s76r"},
+{title:"一数 · 【高考解三角形】几何法核心思路与结论",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:32,intro:"本集主题：【高考解三角形】几何法核心思路与结论。约32分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV12e4y1E7AL"},
+{title:"一数 · 高考解三角形热点-化角消元思想，包教包会！",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:30,intro:"本集主题：高考解三角形热点-化角消元思想，包教包会！。约30分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1gB4y1j7YY"},
+{title:"一数 · 立体几何垂直利器：三垂线定理教学与运用",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:24,intro:"本集主题：立体几何垂直利器：三垂线定理教学与运用。约24分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1AY411P7uR"},
+{title:"一数 · 立体几何平行不会用？证明与运用思路都在这儿！",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:26,intro:"本集主题：立体几何平行不会用？证明与运用思路都在这儿！。约26分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1aY411j7kL"},
+{title:"一数 · 刚学立体几何懵了？学会找面，秒变初中几何！",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:19,intro:"本集主题：刚学立体几何懵了？学会找面，秒变初中几何！。约19分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1pF41137g2"},
+{title:"一数 · 高中数学平面向量主流方法、二级结论全梳理！",up:"一数",subject:"数学",type:"单点精讲 · 方法模型",tags:["数学","单点精讲","方法模型"],dur:47,intro:"本集主题：高中数学平面向量主流方法、二级结论全梳理！。约47分钟。一节课集中讲透一个方法或模型，适合针对薄弱点单点突破，不必跟完整套合集。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV17L411N7Gb"},
+{title:"一数 · 【一数拔高】高考不等式大荟萃！基本不等式+柯西+权方和！",up:"一数",subject:"数学",type:"单点精讲 · 拔高",tags:["数学","单点精讲","拔高"],dur:90,intro:"本集主题：【一数拔高】高考不等式大荟萃！基本不等式+柯西+权方和！。约1小时30分钟。面向120分以上的拔高内容，单集攻克一类高阶技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1zNudzfEXX"},
+{title:"一数 · 【一数拔高】高考必会函数！二次+分式！",up:"一数",subject:"数学",type:"单点精讲 · 拔高",tags:["数学","单点精讲","拔高"],dur:48,intro:"本集主题：【一数拔高】高考必会函数！二次+分式！。约48分钟。面向120分以上的拔高内容，单集攻克一类高阶技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1UY8gzvE4u"},
+{title:"一数 · 【一数拔高】指对幂函数大综合！",up:"一数",subject:"数学",type:"单点精讲 · 拔高",tags:["数学","单点精讲","拔高"],dur:48,intro:"本集主题：【一数拔高】指对幂函数大综合！。约48分钟。面向120分以上的拔高内容，单集攻克一类高阶技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1eQhgzjEAB"},
+{title:"一数 · 【一数拔高】数形结合！函数必会技巧！",up:"一数",subject:"数学",type:"单点精讲 · 拔高",tags:["数学","单点精讲","拔高"],dur:70,intro:"本集主题：【一数拔高】数形结合！函数必会技巧！。约1小时10分钟。面向120分以上的拔高内容，单集攻克一类高阶技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1amYrzME21"},
+{title:"一数 · 【一数拔高】函数性质大综合",up:"一数",subject:"数学",type:"单点精讲 · 拔高",tags:["数学","单点精讲","拔高"],dur:81,intro:"本集主题：【一数拔高】函数性质大综合。约1小时21分钟。面向120分以上的拔高内容，单集攻克一类高阶技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1FCHCzbEyM"},
+{title:"一数 · 【一数拔高】抽象函数！题型全总结！",up:"一数",subject:"数学",type:"单点精讲 · 拔高",tags:["数学","单点精讲","拔高"],dur:59,intro:"本集主题：【一数拔高】抽象函数！题型全总结！。约59分钟。面向120分以上的拔高内容，单集攻克一类高阶技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1i2pfzvEYM"},
+{title:"一数 · 【一数拔高】圆锥曲线技巧大全！平移齐次+点乘双根+垂径定理+非对称韦达+三角代换！",up:"一数",subject:"数学",type:"单点精讲 · 拔高",tags:["数学","单点精讲","拔高"],dur:97,intro:"本集主题：【一数拔高】圆锥曲线技巧大全！平移齐次+点乘双根+垂径定理+非对称韦达+三角代换！。约1小时37分钟。面向120分以上的拔高内容，单集攻克一类高阶技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1UXW4zNEBS"},
+{title:"一数 · 【一数拔高】圆锥曲线进阶技巧！和积关系+定比点差+直线参数方程！",up:"一数",subject:"数学",type:"单点精讲 · 拔高",tags:["数学","单点精讲","拔高"],dur:85,intro:"本集主题：【一数拔高】圆锥曲线进阶技巧！和积关系+定比点差+直线参数方程！。约1小时25分钟。面向120分以上的拔高内容，单集攻克一类高阶技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1jfsoziE2E"},
+{title:"一数 · 【一数拔高】圆锥曲线命题背景！射影几何：调和点列+极点极线！高考五年考五次！",up:"一数",subject:"数学",type:"单点精讲 · 拔高",tags:["数学","单点精讲","拔高"],dur:61,intro:"本集主题：【一数拔高】圆锥曲线命题背景！射影几何：调和点列+极点极线！高考五年考五次！。约1小时1分钟。面向120分以上的拔高内容，单集攻克一类高阶技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV19YUwBEEX7"},
+{title:"一数 · 【一数拔高】圆锥曲线弦长压轴！封神训练篇！",up:"一数",subject:"数学",type:"单点精讲 · 拔高",tags:["数学","单点精讲","拔高"],dur:124,intro:"本集主题：【一数拔高】圆锥曲线弦长压轴！封神训练篇！。约2小时4分钟。面向120分以上的拔高内容，单集攻克一类高阶技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1YWP4zxEdV"},
+{title:"一数 · 【新高考一轮复习】二次函数！考点全梳理！",up:"一数",subject:"数学",type:"单点精讲 · 一轮考点",tags:["数学","单点精讲","一轮考点"],dur:75,intro:"本集主题：【新高考一轮复习】二次函数！考点全梳理！。约1小时15分钟。一轮复习的单考点深讲，一节课过完一个考点。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1M4jJ65Ee9"},
+{title:"一数 · 【新高考一轮复习】分式函数！一站式讲解！",up:"一数",subject:"数学",type:"单点精讲 · 一轮考点",tags:["数学","单点精讲","一轮考点"],dur:63,intro:"本集主题：【新高考一轮复习】分式函数！一站式讲解！。约1小时3分钟。一轮复习的单考点深讲，一节课过完一个考点。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1wv7W6EEWh"},
+{title:"一数 · 【一轮复习】指对幂函数+比大小! 一节课搞定！",up:"一数",subject:"数学",type:"单点精讲 · 一轮考点",tags:["数学","单点精讲","一轮考点"],dur:125,intro:"本集主题：【一轮复习】指对幂函数+比大小! 一节课搞定！。约2小时5分钟。一轮复习的单考点深讲，一节课过完一个考点。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1ZAM36EEqZ"},
+{title:"一数 · 【一轮复习】高考热点！绝对值问题！基础篇！",up:"一数",subject:"数学",type:"单点精讲 · 一轮考点",tags:["数学","单点精讲","一轮考点"],dur:41,intro:"本集主题：【一轮复习】高考热点！绝对值问题！基础篇！。约41分钟。一轮复习的单考点深讲，一节课过完一个考点。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Xy356ZEXM"},
+{title:"一数 · 【一轮复习】绝对值的数形结合与零点综合！",up:"一数",subject:"数学",type:"单点精讲 · 一轮考点",tags:["数学","单点精讲","一轮考点"],dur:46,intro:"本集主题：【一轮复习】绝对值的数形结合与零点综合！。约46分钟。一轮复习的单考点深讲，一节课过完一个考点。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1KPGG6GEEN"},
+{title:"一数 · 【一轮复习】绝对值拔高篇：曼哈顿距离+切比雪夫最佳逼近直线+三角不等式",up:"一数",subject:"数学",type:"单点精讲 · 一轮考点",tags:["数学","单点精讲","一轮考点"],dur:64,intro:"本集主题：【一轮复习】绝对值拔高篇：曼哈顿距离+切比雪夫最佳逼近直线+三角不等式。约1小时4分钟。一轮复习的单考点深讲，一节课过完一个考点。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1kKuv6tEp9"},
+{title:"一数 · 「新定义」不敢做？来听思路！【新定义第一课】",up:"一数",subject:"数学",type:"单点精讲 · 一轮考点",tags:["数学","单点精讲","一轮考点"],dur:50,intro:"本集主题：「新定义」不敢做？来听思路！【新定义第一课】。约50分钟。一轮复习的单考点深讲，一节课过完一个考点。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1cE4m1R7YK"},
+{title:"化学超人 · 25届高考你必须掌握的课本工业流程!（上）",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:40,intro:"本集主题：25届高考你必须掌握的课本工业流程!（上）。约40分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1sU411U7h2"},
+{title:"化学超人 · 25届高考你必须掌握的课本工业流程!（下）",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:35,intro:"本集主题：25届高考你必须掌握的课本工业流程!（下）。约35分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1ZE421w7oZ"},
+{title:"化学超人 · 超神的分析方法！秒杀化工流程：杂质追踪法，以山东卷及全国卷真题为例！",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:34,intro:"本集主题：超神的分析方法！秒杀化工流程：杂质追踪法，以山东卷及全国卷真题为例！。约34分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1TE421w7qc"},
+{title:"化学超人 · 搞定高考化学高频题！最好的热重分析计算课",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:46,intro:"本集主题：搞定高考化学高频题！最好的热重分析计算课。约46分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1xW42197bc"},
+{title:"化学超人 · 高考化学选择性问题最强讲解，以江苏省真题为例！",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:18,intro:"本集主题：高考化学选择性问题最强讲解，以江苏省真题为例！。约18分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1dx4y1W7KT"},
+{title:"化学超人 · 最绝的真题底层逻辑剖析！2024湖北连锁反应电化学（难）",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:18,intro:"本集主题：最绝的真题底层逻辑剖析！2024湖北连锁反应电化学（难）。约18分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV16f421v7MR"},
+{title:"化学超人 · 一节课化身大佬，无脑技巧搞定质子守恒！",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:28,intro:"本集主题：一节课化身大佬，无脑技巧搞定质子守恒！。约28分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV19E4m1R7j7"},
+{title:"化学超人 · 绝对是你见过的最细致的讲解！湖北水溶液压轴题（近些年最难水溶液）",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:23,intro:"本集主题：绝对是你见过的最细致的讲解！湖北水溶液压轴题（近些年最难水溶液）。约23分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Hr421M7Tf"},
+{title:"化学超人 · 好题精讲！一道题教你学会分析酸碱中和滴定曲线！",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:8,intro:"本集主题：好题精讲！一道题教你学会分析酸碱中和滴定曲线！。约8分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1CE421c75D"},
+{title:"化学超人 · 好题精讲！分布系数结合滴定曲线题型如何解决！以真题为例！",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:9,intro:"本集主题：好题精讲！分布系数结合滴定曲线题型如何解决！以真题为例！。约9分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1zM4m117eN"},
+{title:"化学超人 · 高考化学热点题型突破！比例法速解选择性问题",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:9,intro:"本集主题：高考化学热点题型突破！比例法速解选择性问题。约9分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1X2421Z71g"},
+{title:"化学超人 · 坐标变换思想，教你做大神！轻松搞定山东水溶液压轴！",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:12,intro:"本集主题：坐标变换思想，教你做大神！轻松搞定山东水溶液压轴！。约12分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1gM4m1Y7cv"},
+{title:"化学超人 · 【出题人底层思维，必学！】难倒无数同学的真题，知道出题逻辑其实很简单！",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:11,intro:"本集主题：【出题人底层思维，必学！】难倒无数同学的真题，知道出题逻辑其实很简单！。约11分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1jE421c7si"},
+{title:"化学超人 · 一课学会一题型，高考超级热门，自由基电池！",up:"化学超人",subject:"化学",type:"单点精讲 · 解题模型",tags:["化学","单点精讲","解题模型"],dur:8,intro:"本集主题：一课学会一题型，高考超级热门，自由基电池！。约8分钟。模型神技类单集，教一个可复用的解题模型，学会了能迁移到同类题。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1yCHDewETv"},
+{title:"化学超人 · 高考化学二轮压轴：返滴定法大题实战！带你突破压轴题！",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:10,intro:"本集主题：高考化学二轮压轴：返滴定法大题实战！带你突破压轴题！。约10分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1dT411277Z"},
+{title:"化学超人 · 比例法秒杀选择性问题分压平衡常数！高考连考三年！",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:196,intro:"本集主题：比例法秒杀选择性问题分压平衡常数！高考连考三年！。约3小时16分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1ky411a7Cv"},
+{title:"化学超人 · 神技！插入法书写同分异构体",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:11,intro:"本集主题：神技！插入法书写同分异构体。约11分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Hz4y1p7oH"},
+{title:"化学超人 · 基元法秒杀同分异构体【重要模型】",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:7,intro:"本集主题：基元法秒杀同分异构体【重要模型】。约7分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Wh4y1C7wZ"},
+{title:"化学超人 · 取代法解决同分异构体【重要模型】",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:9,intro:"本集主题：取代法解决同分异构体【重要模型】。约9分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1dk4y137Qn"},
+{title:"化学超人 · 学就涨分，有机物不饱和度速算！",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:16,intro:"本集主题：学就涨分，有机物不饱和度速算！。约16分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1gX4y1J7Tv"},
+{title:"化学超人 · 一节课搞定重难点！有机物原子共线面",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:22,intro:"本集主题：一节课搞定重难点！有机物原子共线面。约22分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1gM4y1W7K5"},
+{title:"化学超人 · 两句真言，教你学会单一及混合溶液粒子浓度比较【重要模型】",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:15,intro:"本集主题：两句真言，教你学会单一及混合溶液粒子浓度比较【重要模型】。约15分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Lk4y1G7LC"},
+{title:"化学超人 · 【必看好题】电化学双极膜考了这么久，你肿么还不会？学会了留言扣1！",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:14,intro:"本集主题：【必看好题】电化学双极膜考了这么久，你肿么还不会？学会了留言扣1！。约14分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1XA411C7Rx"},
+{title:"化学超人 · 高考化学选择性问题考查模型十分钟带你学会，会了评论区请扣666！",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:14,intro:"本集主题：高考化学选择性问题考查模型十分钟带你学会，会了评论区请扣666！。约14分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1UM4y1X7kD"},
+{title:"化学超人 · 【答疑专栏，虽迟但到】教你强酸换弱酸的底层逻辑！困扰各位卷王的问题，今天消灭掉！",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:14,intro:"本集主题：【答疑专栏，虽迟但到】教你强酸换弱酸的底层逻辑！困扰各位卷王的问题，今天消灭掉！。约14分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1v94y1C7Xg"},
+{title:"化学超人 · 【动脑子容易错】多元酸离子混合离子方程式书写！",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:6,intro:"本集主题：【动脑子容易错】多元酸离子混合离子方程式书写！。约6分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1gu411j7Jj"},
+{title:"化学超人 · 佛脚班！有机化学基础知识速通！",up:"化学超人",subject:"化学",type:"单点精讲 · 题型技巧",tags:["化学","单点精讲","题型技巧"],dur:66,intro:"本集主题：佛脚班！有机化学基础知识速通！。约1小时6分钟。单考点技巧课，短平快解决一个具体题型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1pN411D77H"},
+{title:"一物儿 · 【高考物理重难点合集】动力学临界问题，一个视频学会！",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:42,intro:"本集主题：【高考物理重难点合集】动力学临界问题，一个视频学会！。约42分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1CZ421N7q4"},
+{title:"一物儿 · 【高考物理重难点合集】连接体问题、内力公式",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:80,intro:"本集主题：【高考物理重难点合集】连接体问题、内力公式。约1小时20分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1KWtsekEVV"},
+{title:"一物儿 · 【高考物理重难点合集】弹簧突变、轻绳突变",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:43,intro:"本集主题：【高考物理重难点合集】弹簧突变、轻绳突变。约43分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Pup4ewEeF"},
+{title:"一物儿 · 【高考物理重难点合集】板块问题，彻底搞懂！",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:34,intro:"本集主题：【高考物理重难点合集】板块问题，彻底搞懂！。约34分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1QE421w7T2"},
+{title:"一物儿 · 【高考物理重难点合集】板块问题（进阶）共速后运动分析",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:40,intro:"本集主题：【高考物理重难点合集】板块问题（进阶）共速后运动分析。约40分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1cr421T7Gt"},
+{title:"一物儿 · 高考物理【水平传送带 】所有常见题型都在这！",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:60,intro:"本集主题：高考物理【水平传送带 】所有常见题型都在这！。约1小时。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Az4weuEYX"},
+{title:"一物儿 · 高考物理斜面传送带！一个模版解决所有运动分析！",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:80,intro:"本集主题：高考物理斜面传送带！一个模版解决所有运动分析！。约1小时20分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1832hYfEgZ"},
+{title:"一物儿 · 高考物理重点！什么是黄金代换？怎么用黄金代换？一个视频彻底搞明白。",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:20,intro:"本集主题：高考物理重点！什么是黄金代换？怎么用黄金代换？一个视频彻底搞明白。。约20分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1EYyDYbE4b"},
+{title:"一物儿 · 对地位移or相对位移？摩擦力做功究竟要用哪一个？一个视频讲通",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:20,intro:"本集主题：对地位移or相对位移？摩擦力做功究竟要用哪一个？一个视频讲通。约20分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1jTDzYuEGy"},
+{title:"一物儿 · 【动量碰撞总结】9种常考题型的解题思路，一个视频讲清楚。",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:47,intro:"本集主题：【动量碰撞总结】9种常考题型的解题思路，一个视频讲清楚。。约47分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1k4UaYsEYk"},
+{title:"一物儿 · 公式不会选？物理量太多理不清？一个视频讲清楚高中物理静电场公式总结",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:43,intro:"本集主题：公式不会选？物理量太多理不清？一个视频讲清楚高中物理静电场公式总结。约43分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV13YznYJEQz"},
+{title:"一物儿 · 高中物理抽象的电场中轨迹问题，半小时搞定！",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:30,intro:"本集主题：高中物理抽象的电场中轨迹问题，半小时搞定！。约30分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1KetkeZEhn"},
+{title:"一物儿 · 高考物理重难点！「缩放圆」临界状态不会求？一个视频搞定！带电粒子在磁场中运动轨迹的临界问题！",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:27,intro:"本集主题：高考物理重难点！「缩放圆」临界状态不会求？一个视频搞定！带电粒子在磁场中运动轨迹的临界问题！。约27分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1XKiyY5ERB"},
+{title:"一物儿 · 摆线题目不会算？流经电荷量q不会求？轻松搞定动量定理+电磁学计算|高中物理",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:30,intro:"本集主题：摆线题目不会算？流经电荷量q不会求？轻松搞定动量定理+电磁学计算|高中物理。约30分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1hMB1YUEzX"},
+{title:"一物儿 · 大汇总！电学实验二级结论大总结！一个视频带你回顾整个电学实验！",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:48,intro:"本集主题：大汇总！电学实验二级结论大总结！一个视频带你回顾整个电学实验！。约48分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1MnQ3YSEQH"},
+{title:"一物儿 · 保姆级讲解高中物理「最难」的方法，让你一定能听懂的配速法！（带电粒子在复合场中复杂运动）",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:47,intro:"本集主题：保姆级讲解高中物理「最难」的方法，让你一定能听懂的配速法！（带电粒子在复合场中复杂运动）。约47分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1HoBjYWEhX"},
+{title:"一物儿 · 电学实验不会选表？一个视频帮你轻松搞定高考物理电表选择！",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:34,intro:"本集主题：电学实验不会选表？一个视频帮你轻松搞定高考物理电表选择！。约34分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV19KC2YqErc"},
+{title:"一物儿 · 两种方法！彻底搞定高中物理电学实验的电表改装！",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:27,intro:"本集主题：两种方法！彻底搞定高中物理电学实验的电表改装！。约27分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1uZDAYbExC"},
+{title:"一物儿 · 机械波，两个图像，一个视频全搞懂！",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:38,intro:"本集主题：机械波，两个图像，一个视频全搞懂！。约38分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1uDxMewEDm"},
+{title:"一物儿 · 气缸液柱还在丢分？？？一个视频搞定理想气体状态方程！",up:"一物儿",subject:"物理",type:"单点精讲 · 物理模型",tags:["物理","单点精讲","物理模型"],dur:67,intro:"本集主题：气缸液柱还在丢分？？？一个视频搞定理想气体状态方程！。约1小时7分钟。物理重难点单集突破，一个视频讲透一类模型。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV16LZPYaEGg"},
+{title:"司老师讲物理 · 【直线运动】01.11   7个物理量，该如何掌握？",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:43,intro:"本集主题：【直线运动】01.11   7个物理量，该如何掌握？。约43分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1wh4y1A7Ep"},
+{title:"司老师讲物理 · 【直线运动】01.12x-t、v-t、a-t图像",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:36,intro:"本集主题：【直线运动】01.12x-t、v-t、a-t图像。约36分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1DP411b7BA"},
+{title:"司老师讲物理 · 【直线运动】01.29 自由落体、竖直上抛-题型归纳！",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:37,intro:"本集主题：【直线运动】01.29 自由落体、竖直上抛-题型归纳！。约37分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1d84y1X7Wc"},
+{title:"司老师讲物理 · 【力学专题】02.01 重力、重心-核心考点突破、规律总结",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:18,intro:"本集主题：【力学专题】02.01 重力、重心-核心考点突破、规律总结。约18分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1qH4y1z7UH"},
+{title:"司老师讲物理 · 【力学专题】02.02 死节、活结：难点一站式突破！",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:29,intro:"本集主题：【力学专题】02.02 死节、活结：难点一站式突破！。约29分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1cw411u7Es"},
+{title:"司老师讲物理 · 【力学专题】02.03 轻环模型：重难点一站式突破！高考物理",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:20,intro:"本集主题：【力学专题】02.03 轻环模型：重难点一站式突破！高考物理。约20分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1GM411S7xB"},
+{title:"司老师讲物理 · 【力学专题】02.05 弹簧类专题-归纳总结 高考物理",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:32,intro:"本集主题：【力学专题】02.05 弹簧类专题-归纳总结 高考物理。约32分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1iM411f78M"},
+{title:"司老师讲物理 · 【力学专题】02.06 摩擦力专题-专题归纳",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:21,intro:"本集主题：【力学专题】02.06 摩擦力专题-专题归纳。约21分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Jc411X7Ce"},
+{title:"司老师讲物理 · 【力学专题】02.07 摩擦力题型归纳～题型突破",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:37,intro:"本集主题：【力学专题】02.07 摩擦力题型归纳～题型突破。约37分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV18g4y197VG"},
+{title:"司老师讲物理 · 【力学专题】02.08 力的合成与分解-核心突破",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:24,intro:"本集主题：【力学专题】02.08 力的合成与分解-核心突破。约24分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1634y1c78G"},
+{title:"司老师讲物理 · 【力学专题】02.09 力的合成与分解：题型归纳高考物理",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:43,intro:"本集主题：【力学专题】02.09 力的合成与分解：题型归纳高考物理。约43分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1cw411N7AW"},
+{title:"司老师讲物理 · 【力学专题】02.12 正交分解-归纳总结",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:15,intro:"本集主题：【力学专题】02.12 正交分解-归纳总结。约15分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Xc411B7Vj"},
+{title:"司老师讲物理 · 【力学专题】02.14 多体平衡：题型归纳",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:22,intro:"本集主题：【力学专题】02.14 多体平衡：题型归纳。约22分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1nN411L7SA"},
+{title:"司老师讲物理 · 【力学专题】02.17 细绳/链条问题：规律归纳",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:13,intro:"本集主题：【力学专题】02.17 细绳/链条问题：规律归纳。约13分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1B64y1j73q"},
+{title:"司老师讲物理 · 动态平衡-解题思路：归纳总结",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:16,intro:"本集主题：动态平衡-解题思路：归纳总结。约16分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1vG411a7Kv"},
+{title:"司老师讲物理 · 【力学专题】02.13 单体平衡：考点梳理",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:13,intro:"本集主题：【力学专题】02.13 单体平衡：考点梳理。约13分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1hc411q78c"},
+{title:"司老师讲物理 · 相似三角形-解决动态平衡问题",up:"司老师讲物理",subject:"物理",type:"单点精讲 · 专题课",tags:["物理","单点精讲","专题课"],dur:12,intro:"本集主题：相似三角形-解决动态平衡问题。约12分钟。按专题拆分的单节课，考点归纳加题型突破。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1kG411a7ph"},
+{title:"北大学长跳跳 · 【一道顶十道】动量定理+平抛|25年河北卷第14题",up:"北大学长跳跳",subject:"物理",type:"单点精讲 · 真题精讲",tags:["物理","单点精讲","真题精讲"],dur:14,intro:"本集主题：【一道顶十道】动量定理+平抛|25年河北卷第14题。约14分钟。一道真题顶十道练习，精讲一道高考真题的完整思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1GLdABKEor"},
+{title:"北大学长跳跳 · 【一道顶十道】动量守恒定律+传送带模型|25年福建卷第8题",up:"北大学长跳跳",subject:"物理",type:"单点精讲 · 真题精讲",tags:["物理","单点精讲","真题精讲"],dur:22,intro:"本集主题：【一道顶十道】动量守恒定律+传送带模型|25年福建卷第8题。约22分钟。一道真题顶十道练习，精讲一道高考真题的完整思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1XK5G6oEKg"},
+{title:"北大学长跳跳 · 【一道顶十道】v-t图搞定传送带模型|25年海南卷第18题",up:"北大学长跳跳",subject:"物理",type:"单点精讲 · 真题精讲",tags:["物理","单点精讲","真题精讲"],dur:13,intro:"本集主题：【一道顶十道】v-t图搞定传送带模型|25年海南卷第18题。约13分钟。一道真题顶十道练习，精讲一道高考真题的完整思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1RJ5F68EmU"},
+{title:"北大学长跳跳 · 【一道顶十道】综合了动能定理+碰撞+竖直圆+斜抛的力学题|25年浙江1月卷第16题",up:"北大学长跳跳",subject:"物理",type:"单点精讲 · 真题精讲",tags:["物理","单点精讲","真题精讲"],dur:21,intro:"本集主题：【一道顶十道】综合了动能定理+碰撞+竖直圆+斜抛的力学题|25年浙江1月卷第16题。约21分钟。一道真题顶十道练习，精讲一道高考真题的完整思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1HKEP68EBh"},
+{title:"北大学长跳跳 · 【一道顶十道】板块模型|2024年辽宁卷第10题",up:"北大学长跳跳",subject:"物理",type:"单点精讲 · 真题精讲",tags:["物理","单点精讲","真题精讲"],dur:10,intro:"本集主题：【一道顶十道】板块模型|2024年辽宁卷第10题。约10分钟。一道真题顶十道练习，精讲一道高考真题的完整思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1U6jN6MEP7"},
+{title:"北大学长跳跳 · 【一道顶十道】斜交分解搞定斜面斜抛问题|2024年山东卷第12题",up:"北大学长跳跳",subject:"物理",type:"单点精讲 · 真题精讲",tags:["物理","单点精讲","真题精讲"],dur:12,intro:"本集主题：【一道顶十道】斜交分解搞定斜面斜抛问题|2024年山东卷第12题。约12分钟。一道真题顶十道练习，精讲一道高考真题的完整思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1ZT7N69E4P"},
+{title:"北大学长跳跳 · 【一道顶十道】多介质中分析波的干涉|2025年浙江1月卷第12题",up:"北大学长跳跳",subject:"物理",type:"单点精讲 · 真题精讲",tags:["物理","单点精讲","真题精讲"],dur:16,intro:"本集主题：【一道顶十道】多介质中分析波的干涉|2025年浙江1月卷第12题。约16分钟。一道真题顶十道练习，精讲一道高考真题的完整思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1dDjJ6oEEa"},
+{title:"北大学长跳跳 · 【一道顶十道】动量定理也能考难题|2024广西卷第10题",up:"北大学长跳跳",subject:"物理",type:"单点精讲 · 真题精讲",tags:["物理","单点精讲","真题精讲"],dur:11,intro:"本集主题：【一道顶十道】动量定理也能考难题|2024广西卷第10题。约11分钟。一道真题顶十道练习，精讲一道高考真题的完整思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV13hMM6YEyr"},
+{title:"国家玮的语文日常 · 【第一讲：之】虚词外挂加载！折磨考生的10个高频虚词全歼灭！丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 虚词",tags:["语文","单点精讲","虚词"],dur:10,intro:"本集主题：【第一讲：之】虚词外挂加载！折磨考生的10个高频虚词全歼灭！丨国家玮-高考语文。约10分钟。一集讲一个高频虚词，几分钟即学即用。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV15qZhYwE18"},
+{title:"国家玮的语文日常 · 【第二讲：而】虚词\"而\"背刺报告：导致翻译题均分暴跌2-3分的元凶丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 虚词",tags:["语文","单点精讲","虚词"],dur:9,intro:"本集主题：【第二讲：而】虚词\"而\"背刺报告：导致翻译题均分暴跌2-3分的元凶丨国家玮-高考语文。约9分钟。一集讲一个高频虚词，几分钟即学即用。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1LJRiYMEBS"},
+{title:"国家玮的语文日常 · 【第三讲：以】虚词消失的证人：为什么\"以\"字总在翻译时隐身丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 虚词",tags:["语文","单点精讲","虚词"],dur:8,intro:"本集主题：【第三讲：以】虚词消失的证人：为什么\"以\"字总在翻译时隐身丨国家玮-高考语文。约8分钟。一集讲一个高频虚词，几分钟即学即用。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV15vopYqEY2"},
+{title:"国家玮的语文日常 · 【第四讲：然】\"然\"字歼灭计划：专杀翻译题里的逻辑刺客丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 虚词",tags:["语文","单点精讲","虚词"],dur:2,intro:"本集主题：【第四讲：然】\"然\"字歼灭计划：专杀翻译题里的逻辑刺客丨国家玮-高考语文。约2分钟。一集讲一个高频虚词，几分钟即学即用。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1AZ5kzyELB"},
+{title:"国家玮的语文日常 · 【第五讲：乃】虚词连招教学：\"乃\"字是触发翻译的逻辑连接器丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 虚词",tags:["语文","单点精讲","虚词"],dur:2,intro:"本集主题：【第五讲：乃】虚词连招教学：\"乃\"字是触发翻译的逻辑连接器丨国家玮-高考语文。约2分钟。一集讲一个高频虚词，几分钟即学即用。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1QyGCzsEvw"},
+{title:"国家玮的语文日常 · 【第六讲：于】\"于\"字语法包：把文言文当英语学丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 虚词",tags:["语文","单点精讲","虚词"],dur:5,intro:"本集主题：【第六讲：于】\"于\"字语法包：把文言文当英语学丨国家玮-高考语文。约5分钟。一集讲一个高频虚词，几分钟即学即用。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1FYG1zrELd"},
+{title:"国家玮的语文日常 · 【第七讲：为】wéi wèi傻傻分不清楚，一个技巧直接搞定丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 虚词",tags:["语文","单点精讲","虚词"],dur:5,intro:"本集主题：【第七讲：为】wéi wèi傻傻分不清楚，一个技巧直接搞定丨国家玮-高考语文。约5分钟。一集讲一个高频虚词，几分钟即学即用。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV16v7ZzxECH"},
+{title:"国家玮的语文日常 · 【第八讲：者】除了翻译成“...的人”，剩下的你还会吗丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 虚词",tags:["语文","单点精讲","虚词"],dur:8,intro:"本集主题：【第八讲：者】除了翻译成“...的人”，剩下的你还会吗丨国家玮-高考语文。约8分钟。一集讲一个高频虚词，几分钟即学即用。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1ZfJAzMEP1"},
+{title:"国家玮的语文日常 · 【第九讲：其】“其”字用法超全解析！代词、副词、连词一次搞定！丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 虚词",tags:["语文","单点精讲","虚词"],dur:4,intro:"本集主题：【第九讲：其】“其”字用法超全解析！代词、副词、连词一次搞定！丨国家玮-高考语文。约4分钟。一集讲一个高频虚词，几分钟即学即用。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1qx7LzaEGh"},
+{title:"国家玮的语文日常 · 【第十讲：焉】句尾“焉”别乱译！是代词？是语气词？一招精准判断！丨国家玮-高中语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 虚词",tags:["语文","单点精讲","虚词"],dur:5,intro:"本集主题：【第十讲：焉】句尾“焉”别乱译！是代词？是语气词？一招精准判断！丨国家玮-高中语文。约5分钟。一集讲一个高频虚词，几分钟即学即用。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV16g37zfEfa"},
+{title:"国家玮的语文日常 · 【高一高二必看】高中语文答题策略，找准坑点有效学习丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 答题方法",tags:["语文","单点精讲","答题方法"],dur:5,intro:"本集主题：【高一高二必看】高中语文答题策略，找准坑点有效学习丨国家玮-高考语文。约5分钟。答题方法与评分规则类短课，直接改善答题规范。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Qz4y1F7wq"},
+{title:"国家玮的语文日常 · 破题三板斧！快速破解高考语文新题型，考场轻松+10分丨国家玮-高中语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 答题方法",tags:["语文","单点精讲","答题方法"],dur:4,intro:"本集主题：破题三板斧！快速破解高考语文新题型，考场轻松+10分丨国家玮-高中语文。约4分钟。答题方法与评分规则类短课，直接改善答题规范。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1PG41197jF"},
+{title:"国家玮的语文日常 · 高考答案模型规律总结，语文130分有手就行丨国家玮-高中语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 答题方法",tags:["语文","单点精讲","答题方法"],dur:26,intro:"本集主题：高考答案模型规律总结，语文130分有手就行丨国家玮-高中语文。约26分钟。答题方法与评分规则类短课，直接改善答题规范。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1V34y1g7Ac"},
+{title:"国家玮的语文日常 · 高中语文好题拆解，识破陷阱稳拿分丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 答题方法",tags:["语文","单点精讲","答题方法"],dur:25,intro:"本集主题：高中语文好题拆解，识破陷阱稳拿分丨国家玮-高考语文。约25分钟。答题方法与评分规则类短课，直接改善答题规范。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1DF411D7ML"},
+{title:"国家玮的语文日常 · 语文选择题全对不靠蒙，三招秒杀全部错误选项丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 答题方法",tags:["语文","单点精讲","答题方法"],dur:3,intro:"本集主题：语文选择题全对不靠蒙，三招秒杀全部错误选项丨国家玮-高考语文。约3分钟。答题方法与评分规则类短课，直接改善答题规范。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1co4y1c7nT"},
+{title:"国家玮的语文日常 · 高考语文阅卷评分细则，清楚get评分要点丨国家玮-高中语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 答题方法",tags:["语文","单点精讲","答题方法"],dur:3,intro:"本集主题：高考语文阅卷评分细则，清楚get评分要点丨国家玮-高中语文。约3分钟。答题方法与评分规则类短课，直接改善答题规范。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1cp4y157wJ"},
+{title:"国家玮的语文日常 · 语文高分不靠蒙！快速构建题感，分数再涨30+丨国家玮-高考语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 答题方法",tags:["语文","单点精讲","答题方法"],dur:4,intro:"本集主题：语文高分不靠蒙！快速构建题感，分数再涨30+丨国家玮-高考语文。约4分钟。答题方法与评分规则类短课，直接改善答题规范。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1kN411v7i3"},
+{title:"国家玮的语文日常 · 23高考语文命题趋势，轻松拿捏简答难题丨国家玮-高中语文",up:"国家玮的语文日常",subject:"语文",type:"单点精讲 · 答题方法",tags:["语文","单点精讲","答题方法"],dur:5,intro:"本集主题：23高考语文命题趋势，轻松拿捏简答难题丨国家玮-高中语文。约5分钟。答题方法与评分规则类短课，直接改善答题规范。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1NV4y167WJ"},
+{title:"高考语文杨洋 · 作文没方向？站在命题人高度，破解高分写作思路【高考语文杨洋】",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 作文",tags:["语文","单点精讲","作文"],dur:48,intro:"本集主题：作文没方向？站在命题人高度，破解高分写作思路【高考语文杨洋】。约48分钟。作文单主题精讲，破解一类作文主题的立意与写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV13u411S7fA"},
+{title:"高考语文杨洋 · 作文不会写？深挖底层逻辑，一套思维学会审题立意【高考语文杨洋】",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 作文",tags:["语文","单点精讲","作文"],dur:55,intro:"本集主题：作文不会写？深挖底层逻辑，一套思维学会审题立意【高考语文杨洋】。约55分钟。作文单主题精讲，破解一类作文主题的立意与写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV19L411j7yk"},
+{title:"高考语文杨洋 · 十条写作金句助你作文拿高分（上）",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 作文",tags:["语文","单点精讲","作文"],dur:70,intro:"本集主题：十条写作金句助你作文拿高分（上）。约1小时10分钟。作文单主题精讲，破解一类作文主题的立意与写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1E142197P6"},
+{title:"高考语文杨洋 · 十条写作金句助你作文拿高分（下）",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 作文",tags:["语文","单点精讲","作文"],dur:53,intro:"本集主题：十条写作金句助你作文拿高分（下）。约53分钟。作文单主题精讲，破解一类作文主题的立意与写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Fi421k76v"},
+{title:"高考语文杨洋 · 人文主义-破解作文最难主题：社会、时代",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 作文",tags:["语文","单点精讲","作文"],dur:84,intro:"本集主题：人文主义-破解作文最难主题：社会、时代。约1小时24分钟。作文单主题精讲，破解一类作文主题的立意与写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1S14y1Y7rF"},
+{title:"高考语文杨洋 · 科学精神-破解作文科学主题：科学发展更新",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 作文",tags:["语文","单点精讲","作文"],dur:90,intro:"本集主题：科学精神-破解作文科学主题：科学发展更新。约1小时30分钟。作文单主题精讲，破解一类作文主题的立意与写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1sN4y1K7Km"},
+{title:"高考语文杨洋 · 现实主义-破解作文常见主题：家国与时代",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 作文",tags:["语文","单点精讲","作文"],dur:97,intro:"本集主题：现实主义-破解作文常见主题：家国与时代。约1小时37分钟。作文单主题精讲，破解一类作文主题的立意与写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Re4y1t7fy"},
+{title:"高考语文杨洋 · 年度最佳？T8作文不“止”58分！杨洋带你击穿高考作文满分逻辑！25届八省联考为例丨立意解析+满分例文+方法总结+全能素材+科学备考 | T8联考丨杨洋语文",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 作文",tags:["语文","单点精讲","作文"],dur:52,intro:"本集主题：年度最佳？T8作文不“止”58分！杨洋带你击穿高考作文满分逻辑！25届八省联考为例丨立意解析+满分例文+方法总结+全能素材+科学备考 | T8联考丨杨洋语文。约52分钟。作文单主题精讲，破解一类作文主题的立意与写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1xUBjYfEze"},
+{title:"高考语文杨洋 · 论述文阅读满分方法（论述语言的完全理解）",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 阅读",tags:["语文","单点精讲","阅读"],dur:91,intro:"本集主题：论述文阅读满分方法（论述语言的完全理解）。约1小时31分钟。现代文阅读单板块方法课。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1JP4y1J7Bg"},
+{title:"高考语文杨洋 · 小说 · 一切关于人，看破小说阅读写法、考法",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 阅读",tags:["语文","单点精讲","阅读"],dur:120,intro:"本集主题：小说 · 一切关于人，看破小说阅读写法、考法。约2小时。现代文阅读单板块方法课。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Ah4y1V7dR"},
+{title:"高考语文杨洋 · 五一专奉精准提分讲座（阅读部分）",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 阅读",tags:["语文","单点精讲","阅读"],dur:45,intro:"本集主题：五一专奉精准提分讲座（阅读部分）。约45分钟。现代文阅读单板块方法课。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1oa4y137UU"},
+{title:"高考语文杨洋 · 古诗词 · 读法——创作视角的透彻解读",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 古诗",tags:["语文","单点精讲","古诗"],dur:101,intro:"本集主题：古诗词 · 读法——创作视角的透彻解读。约1小时41分钟。古代诗歌单板块方法课。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1jN411t7hb"},
+{title:"高考语文杨洋 · 如何理解一个诗词意象的涵义和用法",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 古诗",tags:["语文","单点精讲","古诗"],dur:31,intro:"本集主题：如何理解一个诗词意象的涵义和用法。约31分钟。古代诗歌单板块方法课。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV12e4y1X7oa"},
+{title:"高考语文杨洋 · 从一首诗看破读诗之难",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 古诗",tags:["语文","单点精讲","古诗"],dur:39,intro:"本集主题：从一首诗看破读诗之难。约39分钟。古代诗歌单板块方法课。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1mY4y1L75t"},
+{title:"高考语文杨洋 · 古文 · 故事的逻辑，古文传记怎么写、怎么考",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 文言文",tags:["语文","单点精讲","文言文"],dur:124,intro:"本集主题：古文 · 故事的逻辑，古文传记怎么写、怎么考。约2小时4分钟。文言文单板块方法课。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1tN411p76E"},
+{title:"高考语文杨洋 · 如何记忆核心虚词",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 文言文",tags:["语文","单点精讲","文言文"],dur:40,intro:"本集主题：如何记忆核心虚词。约40分钟。文言文单板块方法课。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1e94y1Q7iC"},
+{title:"高考语文杨洋 · 如何记忆核心实词",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 文言文",tags:["语文","单点精讲","文言文"],dur:37,intro:"本集主题：如何记忆核心实词。约37分钟。文言文单板块方法课。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Mt4y157Gb"},
+{title:"高考语文杨洋 · 如何记住一个复杂的文言文实词的系列意义和用法",up:"高考语文杨洋",subject:"语文",type:"单点精讲 · 文言文",tags:["语文","单点精讲","文言文"],dur:32,intro:"本集主题：如何记住一个复杂的文言文实词的系列意义和用法。约32分钟。文言文单板块方法课。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1bU4y1i7Eq"},
+{title:"中文系五匪子 · 【骚话公式】一个比较万能的作文开头公式",up:"中文系五匪子",subject:"语文",type:"单点精讲 · 作文公式",tags:["语文","单点精讲","作文公式"],dur:4,intro:"本集主题：【骚话公式】一个比较万能的作文开头公式。约4分钟。作文公式短课，几分钟给一个能直接用的写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Tq4y1f76t"},
+{title:"中文系五匪子 · 【骚话公式】我找到了真·万能结尾公式",up:"中文系五匪子",subject:"语文",type:"单点精讲 · 作文公式",tags:["语文","单点精讲","作文公式"],dur:2,intro:"本集主题：【骚话公式】我找到了真·万能结尾公式。约2分钟。作文公式短课，几分钟给一个能直接用的写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1q44y1F7vy"},
+{title:"中文系五匪子 · 【骚话公式】如何避免写作文空喊口号？这套【论述公式】应该挺灵",up:"中文系五匪子",subject:"语文",type:"单点精讲 · 作文公式",tags:["语文","单点精讲","作文公式"],dur:5,intro:"本集主题：【骚话公式】如何避免写作文空喊口号？这套【论述公式】应该挺灵。约5分钟。作文公式短课，几分钟给一个能直接用的写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1D341117bV"},
+{title:"中文系五匪子 · 【骚话公式】作文开头公式第二弹来了——双核类作文开头咋写？",up:"中文系五匪子",subject:"语文",type:"单点精讲 · 作文公式",tags:["语文","单点精讲","作文公式"],dur:4,intro:"本集主题：【骚话公式】作文开头公式第二弹来了——双核类作文开头咋写？。约4分钟。作文公式短课，几分钟给一个能直接用的写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1uQ4y1U7Rs"},
+{title:"中文系五匪子 · 【骚话公式】写作文不会上价值？骚就够了！",up:"中文系五匪子",subject:"语文",type:"单点精讲 · 作文公式",tags:["语文","单点精讲","作文公式"],dur:2,intro:"本集主题：【骚话公式】写作文不会上价值？骚就够了！。约2分钟。作文公式短课，几分钟给一个能直接用的写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV18F4m157ww"},
+{title:"中文系五匪子 · 【骚话公式】作文极简捞分，迅速提档",up:"中文系五匪子",subject:"语文",type:"单点精讲 · 作文公式",tags:["语文","单点精讲","作文公式"],dur:7,intro:"本集主题：【骚话公式】作文极简捞分，迅速提档。约7分钟。作文公式短课，几分钟给一个能直接用的写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1qp421X7wa"},
+{title:"中文系五匪子 · 【骚话公式】上价值、写措施真的不要再写“吾辈青年应该”了",up:"中文系五匪子",subject:"语文",type:"单点精讲 · 作文公式",tags:["语文","单点精讲","作文公式"],dur:2,intro:"本集主题：【骚话公式】上价值、写措施真的不要再写“吾辈青年应该”了。约2分钟。作文公式短课，几分钟给一个能直接用的写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1zm411271w"},
+{title:"中文系五匪子 · 【骚话公式】记叙文写完人物不会上价值？学会这个万能公式就够了！",up:"中文系五匪子",subject:"语文",type:"单点精讲 · 作文公式",tags:["语文","单点精讲","作文公式"],dur:2,intro:"本集主题：【骚话公式】记叙文写完人物不会上价值？学会这个万能公式就够了！。约2分钟。作文公式短课，几分钟给一个能直接用的写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1uz42127TR"},
+{title:"中文系五匪子 · 【骚话公式】分享一个记叙文万能开头",up:"中文系五匪子",subject:"语文",type:"单点精讲 · 作文公式",tags:["语文","单点精讲","作文公式"],dur:3,intro:"本集主题：【骚话公式】分享一个记叙文万能开头。约3分钟。作文公式短课，几分钟给一个能直接用的写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV188411i7Ko"},
+{title:"中文系五匪子 · 【骚话公式】思辨式命题的结尾风骚起来嘞",up:"中文系五匪子",subject:"语文",type:"单点精讲 · 作文公式",tags:["语文","单点精讲","作文公式"],dur:3,intro:"本集主题：【骚话公式】思辨式命题的结尾风骚起来嘞。约3分钟。作文公式短课，几分钟给一个能直接用的写法。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1bS4y127yD"},
+{title:"一英儿 · 一般现在、过去时【0基础最系统时态教程】第一集",up:"一英儿",subject:"英语",type:"单点精讲 · 时态",tags:["英语","单点精讲","时态"],dur:21,intro:"本集主题：一般现在、过去时【0基础最系统时态教程】第一集。约21分钟。时态系统教程的单集，零基础可跟。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1eP4y1774h"},
+{title:"一英儿 · 一般将来时【0基础最系统时态教程】第二集",up:"一英儿",subject:"英语",type:"单点精讲 · 时态",tags:["英语","单点精讲","时态"],dur:16,intro:"本集主题：一般将来时【0基础最系统时态教程】第二集。约16分钟。时态系统教程的单集，零基础可跟。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Wu411R74U"},
+{title:"一英儿 · 3种【进行时态】系统教程，0基础也能学会！",up:"一英儿",subject:"英语",type:"单点精讲 · 时态",tags:["英语","单点精讲","时态"],dur:19,intro:"本集主题：3种【进行时态】系统教程，0基础也能学会！。约19分钟。时态系统教程的单集，零基础可跟。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1L44y1W7op"},
+{title:"一英儿 · 现在完成时/现在完成进行时 混淆不会用？看这个就会啦！|时态系列合集",up:"一英儿",subject:"英语",type:"单点精讲 · 时态",tags:["英语","单点精讲","时态"],dur:18,intro:"本集主题：现在完成时/现在完成进行时 混淆不会用？看这个就会啦！|时态系列合集。约18分钟。时态系统教程的单集，零基础可跟。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1GS4y1C7Nr"},
+{title:"一英儿 · 过去完成时/现过去完成进行时【英语时态系统教程】|低基础起步",up:"一英儿",subject:"英语",type:"单点精讲 · 时态",tags:["英语","单点精讲","时态"],dur:12,intro:"本集主题：过去完成时/现过去完成进行时【英语时态系统教程】|低基础起步。约12分钟。时态系统教程的单集，零基础可跟。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1jZ4y1k7tF"},
+{title:"一英儿 · 将来完成时/将来完成进行时【英语时态系统教程】|低基础起步",up:"一英儿",subject:"英语",type:"单点精讲 · 时态",tags:["英语","单点精讲","时态"],dur:7,intro:"本集主题：将来完成时/将来完成进行时【英语时态系统教程】|低基础起步。约7分钟。时态系统教程的单集，零基础可跟。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Pb4y1x7K7"},
+{title:"一英儿 · 过去将来4种时态都是啥？过去将来进行时、过去将来完成时、过去将来完成进行时",up:"一英儿",subject:"英语",type:"单点精讲 · 时态",tags:["英语","单点精讲","时态"],dur:9,intro:"本集主题：过去将来4种时态都是啥？过去将来进行时、过去将来完成时、过去将来完成进行时。约9分钟。时态系统教程的单集，零基础可跟。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1ES4y16767"},
+{title:"一英儿 · 词根词缀记单词!【vid/vis】｜高中3500/大学四级单词",up:"一英儿",subject:"英语",type:"单点精讲 · 词根词缀",tags:["英语","单点精讲","词根词缀"],dur:5,intro:"本集主题：词根词缀记单词!【vid/vis】｜高中3500/大学四级单词。约5分钟。词根词缀记单词单集，一组词根批量扩词。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1sd4y1d7DF"},
+{title:"一英儿 · 词根词缀记单词!【spect】｜高中3500/大学四级单词",up:"一英儿",subject:"英语",type:"单点精讲 · 词根词缀",tags:["英语","单点精讲","词根词缀"],dur:2,intro:"本集主题：词根词缀记单词!【spect】｜高中3500/大学四级单词。约2分钟。词根词缀记单词单集，一组词根批量扩词。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1KU4y1k7Nv"},
+{title:"一英儿 · 【一英】名词后缀大汇总！快速拓展词汇量",up:"一英儿",subject:"英语",type:"单点精讲 · 词根词缀",tags:["英语","单点精讲","词根词缀"],dur:10,intro:"本集主题：【一英】名词后缀大汇总！快速拓展词汇量。约10分钟。词根词缀记单词单集，一组词根批量扩词。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1db4y1v7nm"},
+{title:"一英儿 · 6分钟搞定常见形容词后缀！",up:"一英儿",subject:"英语",type:"单点精讲 · 词根词缀",tags:["英语","单点精讲","词根词缀"],dur:6,intro:"本集主题：6分钟搞定常见形容词后缀！。约6分钟。词根词缀记单词单集，一组词根批量扩词。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1xT411N7Cj"},
+{title:"一英儿 · 词根词缀记单词!【com-】｜高中3500/大学四级单词",up:"一英儿",subject:"英语",type:"单点精讲 · 词根词缀",tags:["英语","单点精讲","词根词缀"],dur:3,intro:"本集主题：词根词缀记单词!【com-】｜高中3500/大学四级单词。约3分钟。词根词缀记单词单集，一组词根批量扩词。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1DD4y1B7Zu"},
+{title:"一英儿 · 词根词缀记单词!【-pos-】|高中3500/大学四级单词",up:"一英儿",subject:"英语",type:"单点精讲 · 词根词缀",tags:["英语","单点精讲","词根词缀"],dur:3,intro:"本集主题：词根词缀记单词!【-pos-】|高中3500/大学四级单词。约3分钟。词根词缀记单词单集，一组词根批量扩词。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1m24y1o7jT"},
+{title:"一英儿 · 词根词缀记单词!【-viv-】|高中3500/大学四级单词",up:"一英儿",subject:"英语",type:"单点精讲 · 词根词缀",tags:["英语","单点精讲","词根词缀"],dur:4,intro:"本集主题：词根词缀记单词!【-viv-】|高中3500/大学四级单词。约4分钟。词根词缀记单词单集，一组词根批量扩词。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1jG411n7AN"},
+{title:"一英儿 · 词根词缀记单词!【-cid/cis-】|高中3500/大学四级单词",up:"一英儿",subject:"英语",type:"单点精讲 · 词根词缀",tags:["英语","单点精讲","词根词缀"],dur:3,intro:"本集主题：词根词缀记单词!【-cid/cis-】|高中3500/大学四级单词。约3分钟。词根词缀记单词单集，一组词根批量扩词。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1K84y1z7ai"},
+{title:"Echo高考英语 · 我不允许再有人说，“我不会做语法填空”！四分钟帮你秒了语法填空所有技巧！",up:"Echo高考英语",subject:"英语",type:"单点精讲 · 语法填空",tags:["英语","单点精讲","语法填空"],dur:5,intro:"本集主题：我不允许再有人说，“我不会做语法填空”！四分钟帮你秒了语法填空所有技巧！。约5分钟。语法填空方法课，短平快讲技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV15MNBzFEFj"},
+{title:"Echo高考英语 · 保姆级教程，手把手教你做浙江一月语法填空，短平快暴涨9分！",up:"Echo高考英语",subject:"英语",type:"单点精讲 · 语法填空",tags:["英语","单点精讲","语法填空"],dur:7,intro:"本集主题：保姆级教程，手把手教你做浙江一月语法填空，短平快暴涨9分！。约7分钟。语法填空方法课，短平快讲技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1htuqzwE7o"},
+{title:"Echo高考英语 · 安徽省华师联盟一月测试卷之语法填空 ，无脑填，四分钟保你全对！",up:"Echo高考英语",subject:"英语",type:"单点精讲 · 语法填空",tags:["英语","单点精讲","语法填空"],dur:4,intro:"本集主题：安徽省华师联盟一月测试卷之语法填空 ，无脑填，四分钟保你全对！。约4分钟。语法填空方法课，短平快讲技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1AofoBmE7o"},
+{title:"英语的平行世界 · 语法线导航",up:"英语的平行世界",subject:"英语",type:"单点精讲 · 语法点",tags:["英语","单点精讲","语法点"],dur:11,intro:"本集主题：语法线导航。约11分钟。语法线单集，一个语法点讲透并配练习思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV13ZFtz7EyS"},
+{title:"英语的平行世界 · 【G001】名词的数（Morty教谭警官学英语）",up:"英语的平行世界",subject:"英语",type:"单点精讲 · 语法点",tags:["英语","单点精讲","语法点"],dur:17,intro:"本集主题：【G001】名词的数（Morty教谭警官学英语）。约17分钟。语法线单集，一个语法点讲透并配练习思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV16v411h7Bs"},
+{title:"英语的平行世界 · 【G002】Be动词的数（论人与人之间的差距）",up:"英语的平行世界",subject:"英语",type:"单点精讲 · 语法点",tags:["英语","单点精讲","语法点"],dur:8,intro:"本集主题：【G002】Be动词的数（论人与人之间的差距）。约8分钟。语法线单集，一个语法点讲透并配练习思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1sb4y197Bu"},
+{title:"英语的平行世界 · 【语法G003】动词的数（英语初学者最爱犯的错）",up:"英语的平行世界",subject:"英语",type:"单点精讲 · 语法点",tags:["英语","单点精讲","语法点"],dur:14,intro:"本集主题：【语法G003】动词的数（英语初学者最爱犯的错）。约14分钟。语法线单集，一个语法点讲透并配练习思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1Wi4y1K7sz"},
+{title:"英语的平行世界 · 【G004】动词的时态（英语时态初级）",up:"英语的平行世界",subject:"英语",type:"单点精讲 · 语法点",tags:["英语","单点精讲","语法点"],dur:12,intro:"本集主题：【G004】动词的时态（英语时态初级）。约12分钟。语法线单集，一个语法点讲透并配练习思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1XK411c724"},
+{title:"英语的平行世界 · 【G005】形容词副词的比较级和最高级",up:"英语的平行世界",subject:"英语",type:"单点精讲 · 语法点",tags:["英语","单点精讲","语法点"],dur:15,intro:"本集主题：【G005】形容词副词的比较级和最高级。约15分钟。语法线单集，一个语法点讲透并配练习思路。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV14A411L7db"},
+{title:"一地er · 【最后一课】80分钟高考地理高频考点串讲-上！",up:"一地er",subject:"地理",type:"单点精讲 · 地理方法",tags:["地理","单点精讲","地理方法"],dur:76,intro:"本集主题：【最后一课】80分钟高考地理高频考点串讲-上！。约1小时16分钟。地理方法与刷题课，考试导向，直接服务提分。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1as4y1B71G"},
+{title:"一地er · 【最后一课】120分钟高考地理高频考点串讲-下！",up:"一地er",subject:"地理",type:"单点精讲 · 地理方法",tags:["地理","单点精讲","地理方法"],dur:119,intro:"本集主题：【最后一课】120分钟高考地理高频考点串讲-下！。约1小时59分钟。地理方法与刷题课，考试导向，直接服务提分。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1po4y1g7bo"},
+{title:"一地er · 地理大题写不会？新模式！手把手带你写综合题",up:"一地er",subject:"地理",type:"单点精讲 · 地理方法",tags:["地理","单点精讲","地理方法"],dur:21,intro:"本集主题：地理大题写不会？新模式！手把手带你写综合题。约21分钟。地理方法与刷题课，考试导向，直接服务提分。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1uV411M7Wz"},
+{title:"一地er · T8联考！高考地理选择题技巧！满分必看！",up:"一地er",subject:"地理",type:"单点精讲 · 地理方法",tags:["地理","单点精讲","地理方法"],dur:39,intro:"本集主题：T8联考！高考地理选择题技巧！满分必看！。约39分钟。地理方法与刷题课，考试导向，直接服务提分。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV17K411472Y"},
+{title:"一地er · T8联考！地理大题！大题没上40+必看方法！",up:"一地er",subject:"地理",type:"单点精讲 · 地理方法",tags:["地理","单点精讲","地理方法"],dur:49,intro:"本集主题：T8联考！地理大题！大题没上40+必看方法！。约49分钟。地理方法与刷题课，考试导向，直接服务提分。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1cg4y1r7p7"},
+{title:"一地er · 题刷刷！选择题找不到方法？带你做最新选择题！",up:"一地er",subject:"地理",type:"单点精讲 · 地理方法",tags:["地理","单点精讲","地理方法"],dur:31,intro:"本集主题：题刷刷！选择题找不到方法？带你做最新选择题！。约31分钟。地理方法与刷题课，考试导向，直接服务提分。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1ha4y1G7sD"},
+{title:"一地er · 2024地理九省联考！各省最精华选择题详解！",up:"一地er",subject:"地理",type:"单点精讲 · 地理方法",tags:["地理","单点精讲","地理方法"],dur:50,intro:"本集主题：2024地理九省联考！各省最精华选择题详解！。约50分钟。地理方法与刷题课，考试导向，直接服务提分。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1wa4y1C762"},
+{title:"高考地理-包易正 · 《地理必刷1000题》第1讲 地球与地图1-3页",up:"高考地理-包易正",subject:"地理",type:"单点精讲 · 考点带刷",tags:["地理","单点精讲","考点带刷"],dur:42,intro:"本集主题：《地理必刷1000题》第1讲 地球与地图1-3页。约42分钟。必刷1000题按考点逐讲带刷，跟着做即可。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV19C4y127W4"},
+{title:"高考地理-包易正 · 《地理必刷1000题》第2讲 地球与地图4-6页",up:"高考地理-包易正",subject:"地理",type:"单点精讲 · 考点带刷",tags:["地理","单点精讲","考点带刷"],dur:38,intro:"本集主题：《地理必刷1000题》第2讲 地球与地图4-6页。约38分钟。必刷1000题按考点逐讲带刷，跟着做即可。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1V94y1H7E4"},
+{title:"高考地理-包易正 · 《地理必刷1000题》第3讲 地球运动计算7-8页",up:"高考地理-包易正",subject:"地理",type:"单点精讲 · 考点带刷",tags:["地理","单点精讲","考点带刷"],dur:43,intro:"本集主题：《地理必刷1000题》第3讲 地球运动计算7-8页。约43分钟。必刷1000题按考点逐讲带刷，跟着做即可。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1tw411p74H"},
+{title:"高考地理-包易正 · 《地理必刷1000题》第6讲 地球上的大气16-18页",up:"高考地理-包易正",subject:"地理",type:"单点精讲 · 考点带刷",tags:["地理","单点精讲","考点带刷"],dur:43,intro:"本集主题：《地理必刷1000题》第6讲 地球上的大气16-18页。约43分钟。必刷1000题按考点逐讲带刷，跟着做即可。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1uN4y127eN"},
+{title:"高考地理-包易正 · 《地理必刷1000题》第7讲 地球上的大气19-21页",up:"高考地理-包易正",subject:"地理",type:"单点精讲 · 考点带刷",tags:["地理","单点精讲","考点带刷"],dur:53,intro:"本集主题：《地理必刷1000题》第7讲 地球上的大气19-21页。约53分钟。必刷1000题按考点逐讲带刷，跟着做即可。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1MM411Z7Nj"},
+{title:"高考地理-包易正 · 《地理必刷1000题》第21讲 地表形态的塑造60-63页",up:"高考地理-包易正",subject:"地理",type:"单点精讲 · 考点带刷",tags:["地理","单点精讲","考点带刷"],dur:29,intro:"本集主题：《地理必刷1000题》第21讲 地表形态的塑造60-63页。约29分钟。必刷1000题按考点逐讲带刷，跟着做即可。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1E5411q7YU"},
+{title:"高考地理-包易正 · 《地理必刷1000题》第24讲 地表形态的塑造69-72页",up:"高考地理-包易正",subject:"地理",type:"单点精讲 · 考点带刷",tags:["地理","单点精讲","考点带刷"],dur:18,intro:"本集主题：《地理必刷1000题》第24讲 地表形态的塑造69-72页。约18分钟。必刷1000题按考点逐讲带刷，跟着做即可。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV17t4y1R7vW"},
+{title:"小万高考地理 · 火爆全网的《地理选择题秒杀法》（1）",up:"小万高考地理",subject:"地理",type:"单点精讲 · 选择题技巧",tags:["地理","单点精讲","选择题技巧"],dur:2,intro:"本集主题：火爆全网的《地理选择题秒杀法》（1）。约2分钟。选择题秒杀法短课，每集一个秒杀技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1zT411S7n1"},
+{title:"小万高考地理 · 火爆全网的《地理选择题秒杀法》（2）",up:"小万高考地理",subject:"地理",type:"单点精讲 · 选择题技巧",tags:["地理","单点精讲","选择题技巧"],dur:3,intro:"本集主题：火爆全网的《地理选择题秒杀法》（2）。约3分钟。选择题秒杀法短课，每集一个秒杀技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1PD4y1A7fB"},
+{title:"小万高考地理 · 火爆全网的《地理选择题秒杀法》（3）",up:"小万高考地理",subject:"地理",type:"单点精讲 · 选择题技巧",tags:["地理","单点精讲","选择题技巧"],dur:3,intro:"本集主题：火爆全网的《地理选择题秒杀法》（3）。约3分钟。选择题秒杀法短课，每集一个秒杀技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV13Y411e7WF"},
+{title:"小万高考地理 · 火爆全网的《地理选择题秒杀法》（4）",up:"小万高考地理",subject:"地理",type:"单点精讲 · 选择题技巧",tags:["地理","单点精讲","选择题技巧"],dur:3,intro:"本集主题：火爆全网的《地理选择题秒杀法》（4）。约3分钟。选择题秒杀法短课，每集一个秒杀技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1pb411D7GQ"},
+{title:"小万高考地理 · 火爆全网的《地理选择题秒杀法》（5）",up:"小万高考地理",subject:"地理",type:"单点精讲 · 选择题技巧",tags:["地理","单点精讲","选择题技巧"],dur:3,intro:"本集主题：火爆全网的《地理选择题秒杀法》（5）。约3分钟。选择题秒杀法短课，每集一个秒杀技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1oM4y1k71s"},
+{title:"小万高考地理 · 火爆全网的《地理选择题秒杀法》（6）",up:"小万高考地理",subject:"地理",type:"单点精讲 · 选择题技巧",tags:["地理","单点精讲","选择题技巧"],dur:2,intro:"本集主题：火爆全网的《地理选择题秒杀法》（6）。约2分钟。选择题秒杀法短课，每集一个秒杀技巧。",audit:"审核通过。①主题聚焦，单集直达，只讲这一个考点，不必跟完整套合集，适合普通高中生利用碎片时间单点突破；②BV号经B站接口核实，点击直达本集视频；③免费观看。",url:"https://www.bilibili.com/video/BV1hM4y1C76G"},
+];
+
+</script>
+<script>
+  var SUBJECTS = [
+    { key: '全部', emoji: '📚' },
+    { key: '语文', emoji: '📖' },
+    { key: '数学', emoji: '📐' },
+    { key: '英语', emoji: '🔤' },
+    { key: '物理', emoji: '🧲' },
+    { key: '化学', emoji: '⚗️' },
+    { key: '地理', emoji: '🌍' }
+  ];
+
+  var DUR_FILTERS = [
+    { key: 'all', label: '全部时长' },
+    { key: 'short', label: '15分钟内 · 快补' },
+    { key: 'mid', label: '15-45分钟 · 标准' },
+    { key: 'long', label: '45分钟以上 · 深讲' },
+    { key: 'series', label: '全册合集' }
+  ];
+
+  var RESOURCES = window.RESOURCES || [];
+
+  var currentSubject = '全部';
+  var currentDur = 'all';
+  var keyword = '';
+
+  var subjectGrid = document.getElementById('subjectGrid');
+  var durRow = document.getElementById('durRow');
+  var cardGrid = document.getElementById('cardGrid');
+  var emptyState = document.getElementById('emptyState');
+  var resultText = document.getElementById('resultText');
+  var resetBtn = document.getElementById('resetBtn');
+  var searchInput = document.getElementById('searchInput');
+  var clearBtn = document.getElementById('clearBtn');
+
+  function fmtDur(d) {
+    if (!d) return '全册合集';
+    if (d >= 60) {
+      var h = Math.floor(d / 60);
+      var m = d % 60;
+      return m ? h + '小时' + m + '分' : h + '小时';
+    }
+    return d + '分钟';
+  }
+
+  function matchDur(r) {
+    if (currentDur === 'all') return true;
+    if (currentDur === 'series') return r.dur === 0;
+    if (r.dur === 0) return false;
+    if (currentDur === 'short') return r.dur <= 15;
+    if (currentDur === 'mid') return r.dur > 15 && r.dur <= 45;
+    if (currentDur === 'long') return r.dur > 45;
+    return true;
+  }
+
+  function countBySubject(key) {
+    if (key === '全部') return RESOURCES.length;
+    return RESOURCES.filter(function (r) { return r.subject === key; }).length;
+  }
+
+  function renderSubjects() {
+    subjectGrid.innerHTML = '';
+    SUBJECTS.forEach(function (s) {
+      var div = document.createElement('div');
+      div.className = 'subject-card' + (currentSubject === s.key ? ' active' : '');
+      var emoji = document.createElement('div');
+      emoji.className = 'emoji';
+      emoji.textContent = s.emoji;
+      var name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = s.key;
+      var count = document.createElement('div');
+      count.className = 'count';
+      count.textContent = countBySubject(s.key) + ' 个';
+      div.appendChild(emoji);
+      div.appendChild(name);
+      div.appendChild(count);
+      div.addEventListener('click', function () {
+        currentSubject = s.key;
+        render();
+      });
+      subjectGrid.appendChild(div);
+    });
+  }
+
+  function renderDurRow() {
+    durRow.innerHTML = '';
+    DUR_FILTERS.forEach(function (f) {
+      var btn = document.createElement('button');
+      btn.className = 'dur-chip' + (currentDur === f.key ? ' active' : '');
+      btn.textContent = f.label;
+      btn.addEventListener('click', function () {
+        currentDur = f.key;
+        render();
+      });
+      durRow.appendChild(btn);
+    });
+  }
+
+  function renderCards() {
+    var kw = keyword.trim().toLowerCase();
+    var list = RESOURCES.filter(function (r) {
+      var matchSubject = currentSubject === '全部' || r.subject === currentSubject;
+      if (!matchSubject || !matchDur(r)) return false;
+      if (!kw) return true;
+      var haystack = (r.title + ' ' + r.up + ' ' + r.tags.join(' ') + ' ' + r.intro + ' ' + r.type).toLowerCase();
+      return haystack.indexOf(kw) !== -1;
+    });
+
+    cardGrid.innerHTML = '';
+    emptyState.style.display = list.length === 0 ? 'block' : 'none';
+
+    list.sort(function (a, b) {
+      var ca = a.dur === 0 ? 0 : 1;
+      var cb = b.dur === 0 ? 0 : 1;
+      return ca - cb;
+    });
+
+    list.forEach(function (r) {
+      var isCol = r.dur === 0;
+      var meta = SUBJECTS.find(function (s) { return s.key === r.subject; }) || { emoji: '📘' };
+      var card = document.createElement('div');
+      card.className = 'res-card' + (isCol ? ' collection' : '');
+
+      var head = document.createElement('div');
+      head.className = 'head';
+      var badge = document.createElement('div');
+      badge.className = 'badge';
+      badge.textContent = meta.emoji;
+      var headText = document.createElement('div');
+      headText.style.flex = '1';
+      var h3 = document.createElement('h3');
+      h3.textContent = r.title;
+      var up = document.createElement('div');
+      up.className = 'up';
+      up.textContent = 'UP主：' + r.up;
+      headText.appendChild(h3);
+      headText.appendChild(up);
+      var passTag = document.createElement('span');
+      passTag.className = 'pass-tag';
+      passTag.textContent = '审核通过';
+      head.appendChild(badge);
+      head.appendChild(headText);
+      if (isCol) {
+        var colFlag = document.createElement('span');
+        colFlag.className = 'collection-flag';
+        colFlag.textContent = '★ 推荐合集';
+        head.appendChild(colFlag);
+      }
+      head.appendChild(passTag);
+
+      var metaRow = document.createElement('div');
+      metaRow.className = 'meta-row';
+      var rtype = document.createElement('span');
+      rtype.className = 'rtype';
+      rtype.textContent = r.type;
+      var durTag = document.createElement('span');
+      durTag.className = 'dur-tag';
+      durTag.textContent = r.dur === 0 ? '📚 全册合集' : '⏱ ' + fmtDur(r.dur);
+      metaRow.appendChild(rtype);
+      metaRow.appendChild(durTag);
+
+      var intro = document.createElement('div');
+      intro.className = 'intro';
+      intro.textContent = r.intro;
+
+      var auditToggle = document.createElement('button');
+      auditToggle.className = 'audit-toggle';
+      var arrow = document.createElement('span');
+      arrow.className = 'arrow';
+      arrow.textContent = '▶';
+      auditToggle.appendChild(arrow);
+      auditToggle.appendChild(document.createTextNode(' 审核结论'));
+
+      var auditBox = document.createElement('div');
+      auditBox.className = 'audit-box';
+      var auditText = document.createElement('div');
+      auditText.className = 'audit-text';
+      auditText.textContent = r.audit;
+      auditBox.appendChild(auditText);
+
+      auditToggle.addEventListener('click', function () {
+        var isOpen = auditBox.classList.toggle('open');
+        auditToggle.classList.toggle('open', isOpen);
+      });
+
+      var tags = document.createElement('div');
+      tags.className = 'tags';
+      r.tags.forEach(function (t) {
+        var span = document.createElement('span');
+        span.className = 'tag';
+        span.textContent = '#' + t;
+        tags.appendChild(span);
+      });
+
+      var foot = document.createElement('div');
+      foot.className = 'foot';
+      var a = document.createElement('a');
+      a.className = 'go-btn';
+      a.href = r.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = r.dur === 0 ? '进入合集 →' : '去看这节课 →';
+      a.setAttribute('data-primary-action', '直达B站课程');
+      foot.appendChild(a);
+
+      card.appendChild(head);
+      card.appendChild(metaRow);
+      card.appendChild(intro);
+      card.appendChild(auditToggle);
+      card.appendChild(auditBox);
+      card.appendChild(tags);
+      card.appendChild(foot);
+      cardGrid.appendChild(card);
+    });
+
+    var parts = [];
+    if (currentSubject !== '全部') parts.push('「' + currentSubject + '」');
+    if (currentDur !== 'all') {
+      var f = DUR_FILTERS.find(function (x) { return x.key === currentDur; });
+      if (f) parts.push(f.label);
+    }
+    if (kw) parts.push('关键词“' + keyword.trim() + '”');
+    resultText.textContent = (parts.length ? parts.join(' · ') + '，共 ' : '全部精选课程，共 ') + list.length + ' 个';
+    resetBtn.classList.toggle('show', currentSubject !== '全部' || currentDur !== 'all' || kw !== '');
+  }
+
+  function render() {
+    renderSubjects();
+    renderDurRow();
+    renderCards();
+  }
+
+  searchInput.addEventListener('input', function () {
+    keyword = searchInput.value;
+    clearBtn.classList.toggle('show', keyword.length > 0);
+    renderCards();
+  });
+
+  clearBtn.addEventListener('click', function () {
+    searchInput.value = '';
+    keyword = '';
+    clearBtn.classList.remove('show');
+    renderCards();
+    searchInput.focus();
+  });
+
+  resetBtn.addEventListener('click', function () {
+    currentSubject = '全部';
+    currentDur = 'all';
+    keyword = '';
+    searchInput.value = '';
+    clearBtn.classList.remove('show');
+    render();
+  });
+
+  render();
+</script>
+</body>
+</html>
