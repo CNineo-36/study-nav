@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>高中学习资源导航站 · B站九科精选</title>
+<script>
+  // Apply the saved appearance before the page paints.
+  (function () {
+    var theme = 'light';
+    try { if (localStorage.getItem('study-nav-theme') === 'dark') theme = 'dark'; } catch (e) {}
+    document.documentElement.dataset.theme = theme;
+  }());
+</script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -227,10 +235,45 @@
     .empty { padding: 40px 20px; }
     footer { font-size: 12px; }
   }
+  /* Neutral light/dark themes; gold continues to identify recommended collections. */
+  :root {
+    color-scheme: light;
+    --bili-pink: #242424; --bili-blue: #454545;
+    --ink: #191919; --ink-2: #505050; --ink-3: #686868;
+    --bg: #f5f5f5; --card: #ffffff; --line: #dddddd;
+    --soft: #eeeeee; --button-bg: #202020; --button-fg: #ffffff;
+    --collection-bg: #fffbef; --collection-ink: #725014; --gold: #946515;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bili-pink: #eeeeee; --bili-blue: #cccccc;
+    --ink: #f0f0f0; --ink-2: #c2c2c2; --ink-3: #ababab;
+    --bg: #111111; --card: #1e1e1e; --line: #454545;
+    --soft: #303030; --button-bg: #eeeeee; --button-fg: #181818;
+    --collection-bg: #2c271c; --collection-ink: #e9cc91; --gold: #d9b56d;
+  }
+  .topbar { background: var(--card); color: var(--ink); position: relative; padding-top: 76px; }
+  .topbar h1 .logo-dot { background: var(--ink); box-shadow: 0 0 0 4px var(--soft); }
+  .theme-toggle { position: absolute; top: 18px; right: max(20px, calc((100% - 920px) / 2));
+    border: 1px solid var(--line); border-radius: 999px; background: var(--card);
+    color: var(--ink); padding: 10px 16px; min-height: 44px; cursor: pointer; font: inherit; font-size: 14px; }
+  .theme-toggle:hover { background: var(--soft); }
+  button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .subject-card.active { background: var(--soft); }
+  .res-card .badge, .res-card .rtype { background: var(--soft); color: var(--ink-2); }
+  .dur-chip.active, .go-btn { background: var(--button-bg); border-color: var(--button-bg); color: var(--button-fg); }
+  .go-btn:hover { background: var(--button-bg); opacity: .85; }
+  .res-card.collection { background: var(--collection-bg); }
+  .res-card.collection .badge { background: var(--soft); }
+  .collection-flag { background: var(--gold); color: var(--card); }
+  .audit-box, .res-card .dur-tag { background: var(--collection-bg); border-color: var(--gold); color: var(--collection-ink); }
+  .audit-box .audit-text { color: var(--collection-ink); }
+  @media (max-width: 720px) { .topbar { padding-top: 76px; } .theme-toggle { right: 16px; top: 14px; } }
 </style>
 </head>
 <body>
   <header class="topbar">
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="深色模式" aria-pressed="false">切换到黑色主题</button>
     <h1><span class="logo-dot"></span>高中学习资源导航站</h1>
     <p>B站九科单点精讲 · 一节课一个考点 · 语文 数学 英语 物理 化学 生物 历史 政治 地理</p>
   </header>
@@ -608,6 +651,20 @@ window.RESOURCES = [
 
 </script>
 <script>
+  var themeToggle = document.getElementById('themeToggle');
+  function updateThemeButton() {
+    var dark = document.documentElement.dataset.theme === 'dark';
+    themeToggle.textContent = dark ? '切换到白色主题' : '切换到黑色主题';
+    themeToggle.setAttribute('aria-pressed', String(dark));
+  }
+  updateThemeButton();
+  themeToggle.addEventListener('click', function () {
+    var theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem('study-nav-theme', theme); } catch (e) {}
+    updateThemeButton();
+  });
+
   var SUBJECTS = [
     { key: '全部', emoji: '📚' },
     { key: '语文', emoji: '📖' },
