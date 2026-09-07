@@ -289,6 +289,8 @@
   </div>
 
   <main class="container">
+    <div class="dur-row" id="libraryViews" aria-label="课程范围"></div>
+    <p id="libraryNotice" role="status" style="font-size:13px;color:var(--ink-2);margin-bottom:14px">收藏和最近看过仅保存在当前浏览器；最近看过记录你点击打开的课程，不代表已学完。</p>
     <p id="searchHint" style="font-size:13px;color:var(--ink-2);line-height:1.7;margin-bottom:12px">输入即搜索 · 多个关键词用空格分隔 · 可结合科目和时长筛选</p>
     <div id="searchExamples" class="dur-row" aria-label="搜索示例">
       <button type="button" class="dur-chip" data-query="一数 数学">一数 数学</button>
@@ -698,6 +700,32 @@ window.RESOURCES = [
   var currentSubject = '全部';
   var currentDur = 'all';
   var keyword = '';
+  var currentView = 'all';
+  function readLibrary(key) {
+    try {
+      var value = JSON.parse(localStorage.getItem(key) || '[]');
+      return Array.isArray(value) ? Array.from(new Set(value.filter(function (x) { return typeof x === 'string'; }))) : [];
+    } catch (e) { return []; }
+  }
+  var favorites = readLibrary('study-nav-favorites');
+  var recent = readLibrary('study-nav-recent').slice(0, 50);
+  function saveLibrary(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); }
+    catch (e) { document.getElementById('libraryNotice').textContent = '浏览器无法保存记录，本次收藏和浏览记录仅在当前页面有效。'; }
+  }
+  function renderLibraryViews() {
+    var host = document.getElementById('libraryViews');
+    host.innerHTML = '';
+    [['all', '全部课程'], ['favorites', '我的收藏'], ['recent', '最近看过']].forEach(function (entry) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'dur-chip' + (currentView === entry[0] ? ' active' : '');
+      button.textContent = entry[1];
+      button.setAttribute('aria-pressed', String(currentView === entry[0]));
+      button.addEventListener('click', function () { currentView = entry[0]; render(); });
+      host.appendChild(button);
+    });
+  }
 
   var subjectGrid = document.getElementById('subjectGrid');
   var durRow = document.getElementById('durRow');
@@ -783,9 +811,25 @@ window.RESOURCES = [
     return terms.every(function (term) { return text.indexOf(term) !== -1; });
   }
 
+  function searchScore(resource, query) {
+    var q = normalizeSearch(query);
+    var title = normalizeSearch(resource.title);
+    var teacher = normalizeSearch(resource.up);
+    var score = teacher === q ? 1000 : 0;
+    if (title === q) score += 800;
+    q.split(/\s+/).filter(Boolean).forEach(function (term) {
+      if (teacher.indexOf(term) !== -1) score += 100;
+      if (title.indexOf(term) !== -1) score += 60;
+      if (normalizeSearch(resource.tags.join(' ') + ' ' + resource.subject).indexOf(term) !== -1) score += 20;
+    });
+    return score;
+  }
+
   function renderCards() {
     var kw = normalizeSearch(keyword);
     var list = RESOURCES.filter(function (r) {
+      if (currentView === 'favorites' && favorites.indexOf(r.url) === -1) return false;
+      if (currentView === 'recent' && recent.indexOf(r.url) === -1) return false;
       var matchSubject = currentSubject === '全部' || r.subject === currentSubject;
       if (!matchSubject || !matchDur(r)) return false;
       if (!kw) return true;
@@ -794,8 +838,19 @@ window.RESOURCES = [
 
     cardGrid.innerHTML = '';
     emptyState.style.display = list.length === 0 ? 'block' : 'none';
+    emptyState.querySelector('.tip').textContent = currentView === 'favorites' && favorites.length === 0
+      ? '还没有收藏。点击课程卡片上的“收藏”，下次就能在这里找到。'
+      : currentView === 'recent' && recent.length === 0
+      ? '还没有浏览记录。打开一节课程后，它就会出现在这里。'
+      : '没有找到匹配的课程，试试减少关键词，或重置筛选。';
 
     list.sort(function (a, b) {
+      if (kw) {
+        var diff = searchScore(b, keyword) - searchScore(a, keyword);
+        if (diff) return diff;
+      }
+      if (currentView === 'recent') return recent.indexOf(a.url) - recent.indexOf(b.url);
+      if (kw) return (a.dur === 0 ? 1 : 0) - (b.dur === 0 ? 1 : 0);
       var ca = a.dur === 0 ? 0 : 1;
       var cb = b.dur === 0 ? 0 : 1;
       return ca - cb;
@@ -880,11 +935,37 @@ window.RESOURCES = [
 
       var foot = document.createElement('div');
       foot.className = 'foot';
+      foot.style.flexWrap = 'wrap';
+      foot.style.gap = '8px';
+      var favoriteButton = document.createElement('button');
+      favoriteButton.type = 'button';
+      favoriteButton.className = 'dur-chip';
+      function refreshFavorite() {
+        var selected = favorites.indexOf(r.url) !== -1;
+        favoriteButton.textContent = selected ? '★ 已收藏' : '☆ 收藏';
+        favoriteButton.setAttribute('aria-pressed', String(selected));
+        favoriteButton.setAttribute('aria-label', (selected ? '取消收藏：' : '收藏：') + r.title);
+      }
+      refreshFavorite();
+      favoriteButton.addEventListener('click', function () {
+        if (favorites.indexOf(r.url) === -1) favorites.push(r.url);
+        else favorites = favorites.filter(function (url) { return url !== r.url; });
+        saveLibrary('study-nav-favorites', favorites);
+        if (currentView === 'favorites') renderCards();
+        else refreshFavorite();
+      });
+      foot.appendChild(favoriteButton);
       var a = document.createElement('a');
       a.className = 'go-btn';
       a.href = r.url;
       a.target = '_blank';
       a.rel = 'noopener';
+      function recordVisit() {
+        recent = [r.url].concat(recent.filter(function (url) { return url !== r.url; })).slice(0, 50);
+        saveLibrary('study-nav-recent', recent);
+      }
+      a.addEventListener('click', recordVisit);
+      a.addEventListener('auxclick', function (event) { if (event.button === 1) recordVisit(); });
       a.textContent = r.dur === 0 ? '进入合集 →' : '去看这节课 →';
       a.setAttribute('data-primary-action', '直达B站课程');
       foot.appendChild(a);
@@ -900,6 +981,7 @@ window.RESOURCES = [
     });
 
     var parts = [];
+    if (currentView !== 'all') parts.push(currentView === 'favorites' ? '我的收藏' : '最近看过');
     if (currentSubject !== '全部') parts.push('「' + currentSubject + '」');
     if (currentDur !== 'all') {
       var f = DUR_FILTERS.find(function (x) { return x.key === currentDur; });
@@ -911,6 +993,7 @@ window.RESOURCES = [
   }
 
   function render() {
+    renderLibraryViews();
     renderSubjects();
     renderDurRow();
     renderCards();
