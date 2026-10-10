@@ -139,6 +139,28 @@
   @supports (content-visibility: auto) {
     .res-card { content-visibility: auto; contain-intrinsic-size: auto 370px; }
   }
+  /* Short, interaction-triggered feedback follows the appearance switch. */
+  @media (prefers-reduced-motion: no-preference) {
+    :root[data-effects="glass"] .subject-card,
+    :root[data-effects="glass"] .dur-chip,
+    :root[data-effects="glass"] .go-btn,
+    :root[data-effects="glass"] .theme-toggle,
+    :root[data-effects="glass"] .effect-toggle,
+    :root[data-effects="glass"] .clear-btn {
+      transition: transform 120ms ease-out, background-color 140ms ease-out, color 140ms ease-out;
+    }
+    :root[data-effects="glass"] button:active,
+    :root[data-effects="glass"] .go-btn:active { transform: scale(.97); }
+    :root[data-effects="glass"] .audit-toggle .arrow { transition: transform 140ms ease-out; }
+    :root[data-effects="glass"] .audit-box.open { animation: detail-in 150ms ease-out; }
+    @media (hover: hover) and (pointer: fine) {
+      :root[data-effects="glass"] .res-card { transition: transform 140ms ease-out, border-color 140ms ease-out; }
+      :root[data-effects="glass"] .res-card:hover { transform: translateY(-2px); }
+      :root[data-effects="glass"] .go-btn:hover { transform: translateY(-1px); }
+    }
+  }
+  .res-card .foot .dur-chip[aria-pressed="true"] { color: var(--collection-ink); border-color: var(--gold); background: var(--collection-bg); }
+  @keyframes detail-in { from { opacity: .5; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
   @media (max-width: 900px) {
     .subjects { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 6px; }
   }
