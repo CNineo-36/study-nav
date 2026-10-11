@@ -16,12 +16,15 @@ function key(url) {
 }
 const keys = resources.map(r => key(r.url));
 assert.equal(new Set(keys).size, resources.length, 'Duplicate course URLs, including implicit p=1');
+const currentEvidence = JSON.parse(fs.readFileSync(path.join(root, 'data/resource-checks-2026-10-11.json'), 'utf8'));
 const checked = resources.filter(r => r.verifiedAt === '2026-09-09');
-assert.equal(checked.length, 60);
+assert.equal(checked.length, 27);
 assert.equal(evidence.length, 60);
 assert.equal(new Set(evidence.map(e => e.cid)).size, 60, 'Duplicate video parts');
-for (const entry of evidence) {
-  const resource = checked.find(r => r.url === entry.url);
+const activeEvidence = evidence.filter(e => !currentEvidence.some(n => n.previousUrl === e.url)).concat(currentEvidence);
+assert.equal(new Set(activeEvidence.map(e => e.cid)).size, activeEvidence.length, 'Duplicate current video parts');
+for (const entry of activeEvidence) {
+  const resource = resources.find(r => r.url === entry.url);
   assert(resource, `Missing checked resource: ${entry.url}`);
   assert.equal(resource.up, entry.owner.name);
   assert.equal(resource.subject, entry.subject);
@@ -34,10 +37,25 @@ for (const entry of evidence) {
   assert(entry.cid > 0 && entry.durationSeconds > 0);
   assert(!resource.audit.includes('审核通过'));
 }
-assert.equal(checked.filter(r => r.subject === '化学').length, 40);
+assert.equal(checked.filter(r => r.subject === '化学').length, 7);
 assert.equal(checked.filter(r => r.subject === '生物').length, 12);
 assert.equal(checked.filter(r => r.subject === '地理').length, 8);
 assert(checked.filter(r => r.subject === '生物').every(r => r.intro.includes('旧版')));
+const libraryScript = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].find(m => m[1].includes('function readLibrary(key)'))[1];
+const migrationCode = libraryScript.slice(libraryScript.indexOf('  var courseLinkMoves'), libraryScript.indexOf('  function saveLibrary'));
+const moved = currentEvidence.filter(e => e.previousUrl && e.previousUrl !== e.url);
+assert.equal(moved.length, 10);
+const storage = new Map([
+  ['study-nav-favorites', JSON.stringify(moved.map(e => e.previousUrl))],
+  ['study-nav-recent', JSON.stringify([moved[0].previousUrl, moved[0].previousUrl, 'https://example.com/unchanged'])]
+]);
+const migrationContext = {localStorage: {getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value)}};
+vm.runInNewContext(migrationCode, migrationContext);
+assert.deepEqual(Array.from(migrationContext.favorites), moved.map(e => e.url));
+assert.deepEqual(Array.from(migrationContext.recent), [moved[0].url, 'https://example.com/unchanged']);
+vm.runInNewContext(migrationCode, migrationContext);
+assert.deepEqual(Array.from(migrationContext.favorites), moved.map(e => e.url), 'Do not migrate shifted URLs a second time');
 console.log('PASS: batch metadata, unique BV+part and CID, duration, subjects, verification scope');
+console.log('PASS: favorite/recent link migration, deduplication, preservation and reload');
 console.log(JSON.stringify({total: resources.length, collections: resources.filter(r => r.dur === 0).length,
   subjects: resources.reduce((counts, r) => { counts[r.subject] = (counts[r.subject] || 0) + 1; return counts; }, {})}));
